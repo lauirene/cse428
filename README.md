@@ -49,7 +49,7 @@ HiCFoundation thus provides a unified, efficient, generalizable, and interpretab
 
 ## Overall Protocol 
 <details>
-
+<br>
 1) Pre-training stage: the model is trained in a self-supervised fashion on massive quantities of unlabeled Hi-C data. 
 The model takes masked Hi-C submatrices as input, optimizing for the reconstruction of the full submatrix.
 <br>
@@ -92,7 +92,7 @@ conda activate HiCFoundation
 conda deactivate
 ```
 
-### 4. Download the pre-trained HiCFoundation model
+### 4. Download the trained HiCFoundation model
 You can download our pre-trained and fine-tuned model to ``hicfoundation_model`` for inference, embedding generation and fine-tuning purposes. <br>
 HiCFoundation model weights: [hicfoundation_model]() <br>
 
