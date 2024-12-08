@@ -7,7 +7,7 @@
    <img src="https://img.shields.io/badge/dependencies-tested-green">
 </a>  
 
-HiCFoundation is a generalizable Hi-C foundation model for chromatin architecture, multi-species, single-cell and multi-omics analysis.
+HiCFoundation is a generalizable Hi-C foundation model for chromatin architecture, single-cell and multi-omics analysis across species.
 
 Copyright (C) 2024 Xiao Wang, Yuanyuan Zhang, Suhita Ray, Anupama Jha, Tangqi Fang, Shengqi Hang, Sergei Doulatov, William Stafford Noble, and Sheng Wang
 
@@ -107,7 +107,22 @@ If the link failed, you can also download our model files via our [lab server]()
 
 ### 5. (Optional) Visualization software
 Juicebox: https://aidenlab.org/juicebox/
+
 HiGlass: https://higlass.io/
 
 </details>
 
+# Usage
+
+<details>
+<summary>Inference of fine-tuned HiCFoundation</summary>
+
+This include five different fine-tuned model for 
+- Reproducibility analysis: HiCFoundation will generate embeddings of the input Hi-C, and the submatrix embeddings can be used to compare across biological replicates and non-replicates.
+- Chromatin loop detection: HiCFoudation will generate the loop detection of the input Hi-C in .bedpe format.
+- Resolution enhancement: HiCFoundation will generate enhanced Hi-C map given the input Hi-C.
+- Epigenomic assay profiling: HiCFoundation will generate corressponding epigenomic assays in .bigWig format given the input Hi-C.
+- Single-cell Hi-C enhancement: HiCFoundation will generate the enhanced scHi-C given the input siHi-C.
+
+
+<details>
