@@ -47,6 +47,11 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
         cutoff= 1000
         cutoff = torch.tensor(cutoff).float().cuda()
         log_cutoff = torch.log10(cutoff+1).cuda()
+    if infer_task==5:
+        #scHi-C enhancement
+        cutoff= 1000
+        cutoff = torch.tensor(cutoff).float().cuda()
+        log_cutoff = torch.log10(cutoff+1).cuda()
     for data_iter_step, data in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
         input,total_count,indexes = data
         input = input.cuda()
@@ -62,8 +67,8 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
         elif infer_task==2:
             #loop calling
             output= torch.sigmoid(output)
-        elif infer_task==3:
-            #resolution enhancement
+        elif infer_task==3 or infer_task==5:
+            #resolution enhancement and scHi-C enhancement
             output = output*log_cutoff
             output = torch.pow(10,output)-1
             output = torch.clamp(output,min=0)
@@ -79,12 +84,13 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             current_shape = dataset_shape_dict[chr]
             row_end = min(row_start+args.input_row_size,current_shape[0])
             col_end = min(col_start+args.input_col_size,current_shape[1])
-            current_input = input[i]
-            input_count = np.sum(current_input)
-            if input_count<=len(current_input):
-                #skip super low read count matrix
-                #that's to say, <1 read per 10 kb, samller than 0.3M total read for human
-                continue
+            # current_input = input[i]
+            # input_count = np.sum(current_input)
+            # # may be not necessary, will check if error happens
+            # if input_count<=len(current_input):
+            #     #skip super low read count matrix
+            #     #that's to say, <1 read per 10 kb, samller than 0.3M total read for human
+            #     continue
             cur_output = output[i]
             if infer_task==1:
                 match_key = f"{chr}:{row_start},{col_start}"

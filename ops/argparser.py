@@ -5,7 +5,7 @@ def argparser_infer():
     parser.add_argument('--batch_size', default=128, type=int,
                         help='Batch size of the input')
     # Dataset parameters
-    parser.add_argument('--input', type=str, help='a .hic/.cool/.pkl/.txt/.npy file records Hi-C/scHi-C matrix')
+    parser.add_argument('--input', type=str, help='a .hic/.cool/.pkl/.txt/.pairs/.npy file records Hi-C/scHi-C matrix')
     parser.add_argument('--resolution', default=10000, type=int,help='resolution of the input matrix')
     parser.add_argument("--task",default=0,type=int,help="1: Reproducibility analysis; \n 2: Loop calling; \n \
                         3: Resolution enhancement; \n 4: Epigenomic assay prediction; \n 5: scHi-C enhancement")
