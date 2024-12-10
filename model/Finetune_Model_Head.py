@@ -172,8 +172,7 @@ class Finetune_Model_Head(nn.Module):
             #for reproducibility analysis
             decoder_output = self.forward_decoder(img,
                                                 total_count=total_count)
-
-            return decoder_output[:,0,:],decoder_output[:,self.num_additional_token:,:]
+            return decoder_output[:,0,:]
         elif self.task==2 or self.task==3 or self.task==5:
             #for loop calling, resolution enhancement and scHi-C enhancement
             decoder_output = self.forward_decoder(img,
@@ -182,7 +181,7 @@ class Finetune_Model_Head(nn.Module):
             # use patch-wise token
             decoder_output= decoder_output[:,self.num_additional_token:,:]
             pred_image = self.unpatchify_channel(decoder_output,1)
-            return pred_image
+            return pred_image[:,0,:]
         
         elif self.task==4:
             #for epigenomic assay prediction

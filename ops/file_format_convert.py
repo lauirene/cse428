@@ -1,5 +1,7 @@
 from utils.hic2array import hic2array
 from utils.cool2array import cool2array_intra
+from utils.array2hic import array2hic
+from utils.array2cool import array2cool
 import os 
 import numpy as np
 from ops.sparse_ops import array_to_coo
@@ -105,3 +107,43 @@ def convert_to_pkl(input_file, output_dir,config_resolution):
         raise ValueError("Unsupported file format")
 
     return output_pkl
+
+def pkl2others(input_pkl, output_file,config_resolution,genome_id):
+    output_dir = os.path.dirname(output_file)
+    os.makedirs(output_dir,exist_ok=True)
+    data=load_pkl(input_pkl)
+    if output_file.endswith('.txt'):
+        #write to simple txt
+        # [chr1, pos1, chr2, pos2, count]
+        with open(output_file,'w') as file:
+            file.write("chr1\tpos1\tchr2\tpos2\tcount\n")
+            for chrom in data:
+                for i in range(data[chrom].nnz):
+                    row = data[chrom].row[i]
+                    col = data[chrom].col[i]
+                    count = data[chrom].data[i]
+                    file.write(f"{chrom}\t{row*config_resolution}\t{chrom}\t{col*config_resolution}\t{count}\n")
+    elif output_file.endswith('.npy'):
+        if len(data)>1:
+            print("Warning: multiple chromosomes detected, please check the output in .pkl format:",input_pkl)
+            print("The format is dict in format of [chr]:[scipy.sparse.coo_matrix]")
+            return
+        current_array = data[list(data.keys())[0]]
+        current_array = current_array.toarray()
+        np.save(output_file,current_array)
+    elif output_file.endswith('.hic'):
+        #https://github.com/aidenlab/juicer/wiki/Pre
+        cur_py_path = os.path.abspath(__file__)
+        cur_py_dir = os.path.dirname(cur_py_path)
+        code_repo_dir=os.path.dirname(cur_py_dir)
+        juicer_tools= os.path.join(code_repo_dir,"utils","juicer_tools.jar")
+        array2hic(juicer_tools,input_pkl,output_file,config_resolution,genome_id,1)
+    elif output_file.endswith('.cool'):
+        
+        array2cool(input_pkl,output_file,config_resolution,genome_id,1)
+    elif output_file.endswith('.pkl'):
+        output_file = input_pkl
+    else:
+        print("Unsupported file format ",output_file)
+        output_file=input_pkl
+    print("Final output is saved in ",output_file)

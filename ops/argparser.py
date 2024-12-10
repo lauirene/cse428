@@ -26,4 +26,8 @@ def argparser_infer():
     parser.add_argument("--print_freq",default=1,type=int,
                         help="log frequency for output log during inference")
     parser.add_argument("--gpu",default=None,type=str,help="which gpu to use")
+    parser.add_argument("--genome_id",type=str,default="hg38", help="genome id for generating .hic file. \n \
+                        Must be one of hg18, hg19, hg38, dMel, mm9, mm10, anasPlat1, bTaurus3, canFam3, equCab2, \
+                        galGal4, Pf3D7, sacCer3, sCerS288c, susScr3, or TAIR10; \n \
+                         alternatively, this can be the path of the chrom.sizes file that lists on each line the name and size of the chromosomes.")
     return parser
