@@ -30,4 +30,5 @@ def argparser_infer():
                         Must be one of hg18, hg19, hg38, dMel, mm9, mm10, anasPlat1, bTaurus3, canFam3, equCab2, \
                         galGal4, Pf3D7, sacCer3, sCerS288c, susScr3, or TAIR10; \n \
                          alternatively, this can be the path of the chrom.sizes file that lists on each line the name and size of the chromosomes.")
+    parser.add_argument("--embed_depth",default=0,type=int,help="0: embedding from encoder; k: embedding from k-th layer of decoder; up to 8 indicating the final output of decoder.")
     return parser

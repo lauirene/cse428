@@ -35,13 +35,12 @@ class Finetune_Model_Head(nn.Module):
 
         # HiCFoundation decoder 
         self.decoder_embed = nn.Linear(self.embed_dim, decoder_embed_dim, bias=True)
+        
+        self.decoder_pos_embed = nn.Parameter(torch.zeros(1, num_patches, decoder_embed_dim), requires_grad=False)  # fixed sin-cos embedding
         if self.task==4:
             #for epigenomic assay prediction
             self.decoder_pos_embed_new = nn.Parameter(torch.zeros(1, num_patches , decoder_embed_dim), requires_grad=False)  # fixed sin-cos embedding, avoid loading from previous checkpoint
             
-        else:
-            self.decoder_pos_embed = nn.Parameter(torch.zeros(1, num_patches, decoder_embed_dim), requires_grad=False)  # fixed sin-cos embedding
-
         self.decoder_blocks = nn.ModuleList([
             Block(decoder_embed_dim, decoder_num_heads, mlp_ratio, qkv_bias=True, qk_scale=None, norm_layer=norm_layer)
             for i in range(decoder_depth)])
@@ -142,6 +141,9 @@ class Finetune_Model_Head(nn.Module):
             total_count = torch.ones(img.shape[0]).to(img.device)
             total_count = total_count*1000000000
         x = self.forward_backbone(img,total_count)
+        if self.task==6:
+            embedding_list = []
+            embedding_list.append(x)
         # embed tokens
         x = self.decoder_embed(x)
         # add pos embed
@@ -160,10 +162,15 @@ class Finetune_Model_Head(nn.Module):
         # apply Transformer blocks
         for blk in self.decoder_blocks:
             x = blk(x)
+            if self.task==6:
+                embedding_list.append(x)
         x = self.decoder_norm(x)
-        return x 
+        if self.task==6:
+            return embedding_list
+        else:
+            return x 
         
-            
+     
 
     
     def forward(self, img,total_count=None):
@@ -201,8 +208,19 @@ class Finetune_Model_Head(nn.Module):
                 output.append(y)
             output = torch.stack(output, dim=1) #change to N, num_track, C
             return output
+        
+        elif self.task==6:
+            embedding_list = self.forward_decoder(img,
+                                                total_count=total_count)
+            #remove cls and additional token, which is not very useful in pre-training
+            final_embedding = []
+            for embedding in embedding_list:
+                embedding = embedding[:,self.num_additional_token:,:]
+                final_embedding.append(embedding)
+            return final_embedding
+
         else:
             print("Task ",self.task," is not implemented")
-            print("Please specify the task using --task with 1,2,3,4,5")
+            print("Please specify the task using --task with 1,2,3,4,5,6")
             raise NotImplementedError(f"Task {self.task} is not implemented")
 

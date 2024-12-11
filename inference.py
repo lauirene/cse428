@@ -43,9 +43,16 @@ if __name__ == '__main__':
         print("Epigenomic assay prediction")
     elif args.task==5:
         print("scHi-C enhancement")
+    elif args.task==6:
+        print("Hi-C embedding generation")
+        embed_depth = args.embed_depth
+        if embed_depth>8:
+            print("Error: embed_depth is larger than 8, that is beyond decoder depth. Please set embed_depth<=8")
+            print("0 indicates the encoder output, k indicates the k-th decoder layer's output")
+            exit(1)
     else:
         print("Unknown task specified ",args.task)
-        print("Please specify the task using --task with 1,2,3,4,5")
+        print("Please specify the task using --task with 1,2,3,4,5,6")
         exit(1)
     #check the specied input size, must be a multiple of args.patch_size
     if args.input_row_size%args.patch_size!=0 or args.input_col_size%args.patch_size!=0:

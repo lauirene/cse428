@@ -89,7 +89,10 @@ def hic2array(input_hic,output_pkl=None,
                 continue
             if tondarray in [1,3]:
                 read_array = read_array.toarray()
-            output_dict[chrom1_name+"_"+chrom2_name]=read_array
+            if tondarray in [2,3]:
+                output_dict[chrom1_name]=read_array
+            else:
+                output_dict[chrom1_name+"_"+chrom2_name]=read_array
     if output_pkl is not None:
         output_dir = os.path.dirname(os.path.realpath(output_pkl))
         os.makedirs(output_dir, exist_ok=True)
