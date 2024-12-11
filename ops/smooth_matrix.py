@@ -82,10 +82,10 @@ def smooth_matrix(input_dict,dMax=200,hsize=11,max_value=1000):
             #m1.data = np.power(10,m1.data)-1
         new_dict[key]=triu(m1,0,format='coo')
     return new_dict
-from ops.io_utils import load_pickle, save_pickle
+from ops.io_utils import load_pickle, write_pickle
 def smooth_pkl(input_pkl,output_pkl,
                dMax=200,hsize=11,max_value=1000):
     input_dict = load_pickle(input_pkl)
     new_dict = smooth_matrix(input_dict,dMax,hsize,max_value)
-    save_pickle(new_dict,output_pkl)
+    write_pickle(new_dict,output_pkl)
     return output_pkl
