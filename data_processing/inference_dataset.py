@@ -17,7 +17,8 @@ class Inference_Dataset(torch.utils.data.Dataset):
                 max_cutoff=None,
                 fill_diagonal_zero=False,
                 bounding=200,
-                locus_embedding=False):
+                locus_embedding=False,
+                task=1):
         """
         #data_path: the path of the input data
         #transform: the transform applied to the input data
@@ -42,6 +43,7 @@ class Inference_Dataset(torch.utils.data.Dataset):
         self.input_index = []
         self.dataset_shape = {}
         new_data = {}
+        self.task = task
         half_window_width = self.window_width//2
         half_window_height = self.window_height//2
         #revise the data to make it to be symmetrical
@@ -62,6 +64,9 @@ class Inference_Dataset(torch.utils.data.Dataset):
             hic_data.data[select_index] = hic_data.data[select_index]/2
             input_row_size= max(hic_data.shape[0],self.window_height) #do padding if necessary
             input_col_size= max(hic_data.shape[1],self.window_width)
+            if self.task == 5: # schic enhancement
+                input_row_size = hic_data.shape[0]
+                input_col_size = hic_data.shape[1]
             final_hic_data= coo_matrix((hic_data.data,(hic_data.row,hic_data.col)),
                                        shape=(input_row_size,input_col_size))
 
@@ -69,6 +74,18 @@ class Inference_Dataset(torch.utils.data.Dataset):
             self.dataset_shape[chrom] = final_hic_data.shape
             row_size = final_hic_data.shape[0]
             col_size = final_hic_data.shape[1]
+
+            if self.task == 5: # schic enhancement, for padding around the center matrix
+                current_array = final_hic_data.toarray()
+                if row_size < self.window_height or col_size < self.window_width: # do padding
+                    left_up_pad_size = (self.window_height - row_size) // 2
+                    right_down_pad_size = self.window_height - row_size - right_down_pad_size
+                    final_array = np.pad(current_array,((left_up_pad_size ,right_down_pad_size),(left_up_pad_size ,right_down_pad_size)),'constant',constant_values=(0,0))
+                    final_hic_data_padded = coo_matrix(final_array)
+                    new_data[chrom] = final_hic_data_padded # update the data
+                    row_size = final_hic_data_padded.shape[0] # update the row size
+                    col_size = final_hic_data_padded.shape[1] # update the col size
+                    
             if self.locus_embedding:
                 #raw submatrix extracted from the original matrix
                 for i in range(0,row_size-self.window_height,self.stride):
