@@ -72,10 +72,17 @@ def hic2array(input_hic,output_pkl=None,
             if i!=j and tondarray in [2,3]:
                 #skip inter-chromosome region
                 continue
+            
             chrom1 = chrom_list[i]
             chrom1_name = chrom_list[i].name
             chrom2 = chrom_list[j]
             chrom2_name = chrom_list[j].name
+            if 'Un' in chrom1 or 'Un' in chrom2:
+                continue
+            if "random" in chrom1_name.lower() or "random" in chrom2_name.lower():
+                continue
+            if "alt" in chrom1_name.lower() or "alt" in chrom2_name.lower():
+                continue
             read_array=read_chrom_array(chrom1,chrom2, normalization, input_hic, resolution)
             if read_array is None:
                 print("No data found for",chrom1_name,chrom2_name)

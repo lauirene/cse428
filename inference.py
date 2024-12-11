@@ -15,6 +15,7 @@ def main(args):
     input_file = os.path.abspath(args.input)
     config_resolution = args.resolution
     input_pkl=convert_to_pkl(input_file, output_dir,config_resolution)
+    
     #for reproducibility analysis, we need to smooth the matrix to generate embeddings.
     if args.task==1:
         from ops.smooth_matrix import smooth_pkl
@@ -53,21 +54,3 @@ if __name__ == '__main__':
     #output the args in a beautiful format
     main(args)
 
-"""
-```
-python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 1 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu]
-```
-- input_file: a .hic/.cool/.pkl/.txt/.pairs/.npy file records Hi-C matrix.
-- infer_batch_size: batch size of the input during inference, recommended: 4 for small GPU.
-- hic_resolution: resolution of the input matrix, default: 25000 (25 kb for reproducibility task).
-- input_submatrix_length: input submatrix row size, default: 224.
-- input_submatrix_width: input submatrix column size, default: 224.
-- stride: scanning stride for the input Hi-C matrix, default: 20.
-- scan_boundary: off-diagonal bound for the scanning, default: 0.
-- trained_model_path: load fine-tuned model for inference.
-- output_dir: output directory to save the results, default: hicfoundation_inference.
-- gpu: which gpu to use, default: None (will use all GPU).
-
-Example command:
-
-"""

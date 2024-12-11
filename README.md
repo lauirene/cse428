@@ -166,11 +166,33 @@ The output is saved in the ``output_dir``, where the embedding is saved in "HiCF
 The key of the dict is "chrom:row_index,col_index", and the value is the corresponding embedding. <br>
 This embedding corresponds to the submatrix of [row_index:row_index+input_row_size, col_index:col_index+input_col_size] at chromsome ``chrom``.
 
-Example command:
+#### Example command:
 ```
 python3 inference.py --input example/ENCFF689CUX.hic --batch_size 4 --resolution 25000 --task 1 --input_row_size 224 --input_col_size 224 --stride 20 --bound 0 --model_path hicfoundation_model/hicfoundation_reproducibility.pth.tar --output hicfoundation_inference/reproducibility_analysis/ --gpu "0"
 ```
 This uses the low-coverage example ``ENCFF689CUX.hic`` to run the inference. <br>
 The output embedding is saved in ``hicfoundation_inference/reproducibility_analysis/HiCFoundation_reproducibility_embedding.pkl``.
 
-<details>
+### 2. Inference for chromatin loop detection
+```
+python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 2 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu]
+```
+- input_file: a .hic/.cool/.pkl/.txt/.pairs/.npy file records Hi-C matrix.
+- infer_batch_size: batch size of the input during inference, recommended: 4 for small GPU.
+- hic_resolution: resolution of the input matrix, default: 10000 (10 kb for loop detection).
+- input_submatrix_length: input submatrix row size, default: 224.
+- input_submatrix_width: input submatrix column size, default: 224.
+- stride: scanning stride for the input Hi-C matrix, default: 20.
+- scan_boundary: off-diagonal bound for the scanning, default: 0 (to save time). You can also use 200, the detection results should be similar.
+- trained_model_path: load fine-tuned model for inference. Use "hicfoundation_loop.pth.tar" for high-coverage loop detection and "hicfoundation_loop_lc.pth.tar" for low-coverage loop detection. For human dataset, total reads smaller than 50M is treated as low-coverage, that equals to any experiments with less than around 200 reads per 10 kb.
+- output_dir: output directory to save the results, default: hicfoundation_inference.
+- gpu: which gpu to use, default: None (will use all GPU). You can specify --gpu="0" to only use GPU 0, you can also specify --gpu="0,1" to use GPU0 and GPU1.
+<br>
+The output is saved in the ``output_dir``, where the loop is saved in HiCFoundation_loop_[threshold].bedpe. We kept three confidence level 0.5,0.75,0.9 for your choice. For conservative loop calls, we would recommend you to use 0.9 threshold for loop calls. For low-coverage Hi-C, we would recommend you to to use 0.5 threshold for loop calls. <br>
+Each line records a loop calls in the .bedpe file in format of [chr1 x1 x2 chr2 y1 y2], where chr1 typically is the same as chr2; [x1 x2] records the spanning region of left loop anchor, [y1 y2] records the spanning region of the right loop anchor.
+
+#### Example command:
+
+
+
+</details>

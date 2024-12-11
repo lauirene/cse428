@@ -105,6 +105,9 @@ def cool2array_intra(cooler_path,normalize=False,tondarray=False,binsize=None):
     #including bin1_id,bin2_id,count columns
     return_dict={}
     for k,chromsome in enumerate(chromosomes):
+        #remove unusual chromosomes un, random, alt etc
+        if 'Un' in chromsome or 'random' in chromsome or 'alt' in chromsome:
+            continue
         cur_chromosome_size=chromosome_sizes[k]
         cur_array_length = int(np.ceil(cur_chromosome_size/binsize))
         #filter bins first via the chromosome name
