@@ -81,6 +81,8 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             col_start = col_starts[i]
             row_start = int(row_start)
             col_start = int(col_start)
+            row_start = max(0,row_start)
+            col_start = max(0,col_start)
             current_shape = dataset_shape_dict[chr]
             row_end = min(row_start+args.input_row_size,current_shape[0])
             col_end = min(col_start+args.input_col_size,current_shape[1])
@@ -111,8 +113,8 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             elif infer_task==4:
                 #epigenomic assay prediction
                 cur_output = cur_output[:, :row_end-row_start]
-                output_dict[chrom]['mean'][:, row_start:row_end] += cur_output
-                output_dict[chrom]['count'][:, row_start:row_end] += 1
+                output_dict[chr]['mean'][:, row_start:row_end] += cur_output
+                output_dict[chr]['count'][:, row_start:row_end] += 1
                 
 
 

@@ -9,6 +9,7 @@ from ops.io_utils import write_pickle,append_record
 from ops.mean_shift_merge import mean_shift_merge
 from ops.file_format_convert import pkl2others
 from utils.array2bigwig import array2bigwig
+from model.pos_embed import interpolate_pos_embed_inputsize
 
 
 def configure_dataset(args,input_pkl):
@@ -105,19 +106,44 @@ def generate_loop(return_dict,threshold,output_bedpe,config_resolution):
         append_record(output_bedpe,mean_loc_list,chrom,resolution=config_resolution)
 def main_worker(args, input_pkl):
     resolution = args.resolution
+    #check model_path exists
+    model_path = os.path.abspath(args.model_path)
+    assert os.path.exists(model_path), "model_path does not exist"
     output_dir = os.path.abspath(args.output)
     dataloader = configure_dataset(args, input_pkl)
-    import model.Vision_Transformer_count as Vision_Transformer
-    vit_backbone = Vision_Transformer.__dict__[args.model]()
-    patch_wise_size = (args.input_row_size//args.patch_size,args.input_col_size//args.patch_size)
+    if args.task!=6:
+        import model.Vision_Transformer_count as Vision_Transformer
+        vit_backbone = Vision_Transformer.__dict__[args.model]()
+        patch_wise_size = (args.input_row_size//args.patch_size,args.input_col_size//args.patch_size)
+    else:
+        import model.Vision_Transformer_count as Vision_Transformer
+        #should be a dyanmic input model
+        patch_wise_size = (args.input_row_size//args.patch_size,args.input_col_size//args.patch_size)
+        
+        #load encoder weights
+        checkpoint = torch.load(model_path, map_location='cpu')
+        checkpoint_model = checkpoint['model']
+        state_dict = vit_backbone.state_dict()
+        for k in ['head.weight', 'head.bias']:
+            if k in checkpoint_model and checkpoint_model[k].shape != state_dict[k].shape:
+                print(f"Removing key {k} from pretrained checkpoint")
+                del checkpoint_model[k]
+
+        # interpolate position embedding
+        #this can apply to most scenarios but not our condition
+        
+        patch_wise_size = (args.input_row_size//args.patch_size,args.input_col_size//args.patch_size)
+        interpolate_pos_embed_inputsize(vit_backbone, checkpoint_model,input_size=patch_wise_size,
+                                            use_decoder=False)
+        # load pre-trained model
+        msg = vit_backbone.load_state_dict(checkpoint_model, strict=False)
+        print("Loading pre-train encoder message:",msg)
     from model.Finetune_Model_Head import Finetune_Model_Head
     model = Finetune_Model_Head(vit_backbone, task=args.task,
                             decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
                         mlp_ratio=4., norm_layer=nn.LayerNorm,pos_embed_size=patch_wise_size)
     
-    #check model_path exists
-    model_path = os.path.abspath(args.model_path)
-    assert os.path.exists(model_path), "model_path does not exist"
+    
     #load model weights
     if args.task!=6:
         checkpoint = torch.load(model_path, map_location='cpu')
@@ -130,8 +156,13 @@ def main_worker(args, input_pkl):
         msg = model.load_state_dict(checkpoint_model, strict=False)
         print("Loading pre-train model decoder message:",msg)
     else:
-        checkpoint = torch.load(model_path, map_location='cpu')
         
+        checkpoint = torch.load(model_path, map_location='cpu')
+        checkpoint_model = checkpoint['model']
+        #loading pre-trained decoder
+        interpolate_pos_embed_inputsize(model, checkpoint['model'],use_decoder=True)
+        msg = model.load_state_dict(checkpoint_model, strict=False)
+        print("Loading pre-train model decoder message:",msg)
 
     model = model.cuda()
     model = nn.DataParallel(model, device_ids=None)

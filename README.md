@@ -239,8 +239,9 @@ The output enhanced Hi-C is saved in ``hicfoundation_inference/resolution_enhanc
 
 ### 4. Inference for epigenomic assays profiling
 ```
-python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 4 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu] 
+python3 inference.py --model [model_name] --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 4 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu] 
 ```
+- model_name: model configuration used for inference, should be vit_large_patch16_128kb for epigenomic profiling.
 - input_file: a .hic/.cool/.pkl/.txt/.pairs/.npy file records Hi-C matrix.
 - infer_batch_size: batch size of the input during inference, recommended: 4 for small GPU.
 - hic_resolution: resolution of the input matrix, default: 1000 (1 kb for epigenomic assays prediction).
@@ -260,7 +261,7 @@ You can also use [array2bigwig.py](utils/array2bigwig.py) to convert the .pkl to
 
 #### Example command:
 ```
-python3 inference.py --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolution 1000 --task 4 --input_row_size 128 --input_col_size 4000 --stride 32 --bound 0 --model_path hicfoundation_model/hicfoundation_epigenomic.pth.tar --output hicfoundation_inference/epigenomic_profiling/ --gpu "0" 
+python3 inference.py --model vit_large_patch16_128kb --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolution 1000 --task 4 --input_row_size 128 --input_col_size 4000 --stride 32 --bound 0 --model_path hicfoundation_model/hicfoundation_epigenomic.pth.tar --output hicfoundation_inference/epigenomic_profiling/ --gpu "0" 
 ```
 This uses the high-coverage example ``4DNFITUOMFUQ.hic`` to run the inference. <br>
 The output enhanced Hi-C is saved in ``hicfoundation_inference/epigenomic_profiling/HiCFoundation_epigenomic_assay_prediction_[assay_name].pkl`` and ``hicfoundation_inference/epigenomic_profiling/HiCFoundation_pred_[assay_name].bigWig``. <br>
