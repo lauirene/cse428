@@ -58,41 +58,14 @@ def vit_large_patch16(**kwargs):
         norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
     return model
 
-def vit_large_patch16_1kb(**kwargs):
-    model = VisionTransformer(in_chans=3,img_size=(16,4000),
-        patch_size=16, embed_dim=1024, depth=24, num_heads=16, mlp_ratio=4, qkv_bias=True,
-        norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
-    return model
-
-def vit_large_patch16_96kb(**kwargs):
-    model = VisionTransformer(in_chans=3,img_size=(96,2000),
-        patch_size=16, embed_dim=1024, depth=24, num_heads=16, mlp_ratio=4, qkv_bias=True,
-        norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
-    return model
-def vit_large_patch16_128kb(**kwargs):
-    model = VisionTransformer(in_chans=3,img_size=(128,4000),
-        patch_size=16, embed_dim=1024, depth=24, num_heads=16, mlp_ratio=4, qkv_bias=True,
-        norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
-    return model
-
-def vit_large_patch16_64kb(**kwargs):
-    model = VisionTransformer(in_chans=3,img_size=(64,4000),
-        patch_size=16, embed_dim=1024, depth=24, num_heads=16, mlp_ratio=4, qkv_bias=True,
-        norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
-    return model
 
 
-def vit_large_patch16_1mb(**kwargs):
-    model = VisionTransformer(in_chans=3,img_size=(1024,1024),
-        patch_size=16, embed_dim=1024, depth=24, num_heads=16, mlp_ratio=4, qkv_bias=True,
-        norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
-    return model
-def vit_large_patch16_672(**kwargs):
-    model = VisionTransformer(in_chans=3,img_size=(672,672),
-        patch_size=16, embed_dim=1024, depth=24, num_heads=16, mlp_ratio=4, qkv_bias=True,
-        norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
-    return model
 
+def vit_large_patch16_dynamicsize(**kwargs):
+    model = VisionTransformer(in_chans=3,
+        patch_size=16, embed_dim=1024, depth=24, num_heads=16, mlp_ratio=4, qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
+    return model
 
 def vit_huge_patch14(**kwargs):
     model = VisionTransformer(in_chans=3,

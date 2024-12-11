@@ -19,7 +19,7 @@ def argparser_infer():
                         help='scanning stride for the input Hi-C matrix')
     parser.add_argument("--bound",default=200,type=int,help="off-diagonal bound for the scanning")
     parser.add_argument('--num_workers', default=8, type=int,help="data loading workers per GPU")
-    parser.add_argument('--model', default='vit_large_patch16', type=str, metavar='MODEL',
+    parser.add_argument('--model', default='vit_large_patch16_dynamicsize', type=str, metavar='MODEL',
                         help='Name of model to train')
     parser.add_argument("--model_path",default='',help='load fine-tuned model for inference')
     parser.add_argument('--output', default='hicfoundation_inference',help='output directory to save the results')

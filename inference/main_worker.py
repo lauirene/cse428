@@ -112,16 +112,13 @@ def main_worker(args, input_pkl):
     assert os.path.exists(model_path), "model_path does not exist"
     output_dir = os.path.abspath(args.output)
     dataloader = configure_dataset(args, input_pkl)
-    if args.task!=6:
-        import model.Vision_Transformer_count as Vision_Transformer
-        vit_backbone = Vision_Transformer.__dict__[args.model]()
-        patch_wise_size = (args.input_row_size//args.patch_size,args.input_col_size//args.patch_size)
-    else:
-        import model.Vision_Transformer_count as Vision_Transformer
-        #should be a dyanmic input model
-        patch_wise_size = (args.input_row_size//args.patch_size,args.input_col_size//args.patch_size)
-        
-        #load encoder weights
+    import model.Vision_Transformer_count as Vision_Transformer
+    #should be a dyanmic input model
+    patch_wise_size = (args.input_row_size//args.patch_size,args.input_col_size//args.patch_size)
+    vit_backbone = Vision_Transformer.__dict__[args.model](img_size=(args.input_row_size,args.input_col_size))
+    if args.task==6:
+        # embedding genration inference
+        # only load encoder weights
         checkpoint = torch.load(model_path, map_location='cpu')
         checkpoint_model = checkpoint['model']
         state_dict = vit_backbone.state_dict()

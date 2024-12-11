@@ -155,5 +155,6 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             mean_array=output_dict[chrom]['mean']
             count_array =np.maximum(count_array,1)
             mean_array = mean_array/count_array
+            mean_array = np.nan_to_num(mean_array)
             return_dict[chrom] = mean_array
         return return_dict
