@@ -262,7 +262,8 @@ You can also use [array2bigwig.py](utils/array2bigwig.py) to convert the .pkl to
 ```
 python3 inference.py --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolution 1000 --task 4 --input_row_size 128 --input_col_size 4000 --stride 32 --bound 0 --model_path hicfoundation_model/hicfoundation_epigenomic.pth.tar --output hicfoundation_inference/epigenomic_profiling/ --gpu "0" 
 ```
-
+This uses the high-coverage example ``4DNFITUOMFUQ.hic`` to run the inference. <br>
+The output enhanced Hi-C is saved in ``hicfoundation_inference/epigenomic_profiling/HiCFoundation_epigenomic_assay_prediction_[assay_name].pkl`` and ``hicfoundation_inference/epigenomic_profiling/HiCFoundation_pred_[assay_name].bigWig``. <br>
 
 
 </details>
