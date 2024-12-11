@@ -104,10 +104,10 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
                 #loop calling, resolution enhancement, scHi-C enhancement
                 cur_output = cur_output[:row_end-row_start,:col_end-col_start]
                 cur_output = array_to_coo(cur_output)
-                output_dict[chr]["row_record"].extend(cur_output.row+row_start)
-                output_dict[chr]["col_record"].extend(cur_output.col+col_start)
-                output_dict[chr]["value_record"].extend(cur_output.data)
-                output_dict[chr]["count_record"].extend([1]*len(cur_output.data))
+                output_dict[chr]["row_record"].append(cur_output.row+row_start)
+                output_dict[chr]["col_record"].append(cur_output.col+col_start)
+                output_dict[chr]["value_record"].append(cur_output.data)
+                output_dict[chr]["count_record"].append([1]*len(cur_output.data))
             elif infer_task==4:
                 #epigenomic assay prediction
                 cur_output = cur_output[:, :row_end-row_start]

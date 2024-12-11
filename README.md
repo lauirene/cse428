@@ -267,3 +267,8 @@ The output enhanced Hi-C is saved in ``hicfoundation_inference/epigenomic_profil
 
 
 </details>
+
+## Generate Hi-C multi-scale embeddings
+```
+
+```
