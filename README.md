@@ -134,7 +134,8 @@ HiCFoundation supports the .hic/.cool/.pkl/.txt/.pairs/.npy format.
 
 ## Example
 Please download the following files to the example folder for example testing purposes.<br>
-- Low coverage Hi-C example: https://www.encodeproject.org/files/ENCFF689CUX/@@download/ENCFF689CUX.hic.
+- Low coverage Hi-C example: https://www.encodeproject.org/files/ENCFF689CUX/@@download/ENCFF689CUX.hic
+- Low coverage Hi-C example2: https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE174533&format=file&file=GSE174533%5F1%2DC11%2DCB1%2E2%2DC11%2DCB2%2Emerge%2Ehic
 - High coverage Hi-C example: https://data.4dnucleome.org/files-processed/4DNFITUOMFUQ/. (4DN requires authentication in for downloading, so please download in the webpage)
 - Single-cell Hi-C example: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM7006527 
 (For single-cell Hi-C example, it is already kept in ``example`` directory, so you do not need to downlaod again.)
@@ -192,6 +193,22 @@ The output is saved in the ``output_dir``, where the loop is saved in HiCFoundat
 Each line records a loop calls in the .bedpe file in format of [chr1 x1 x2 chr2 y1 y2], where chr1 typically is the same as chr2; [x1 x2] records the spanning region of left loop anchor, [y1 y2] records the spanning region of the right loop anchor.
 
 #### Example command:
+Loop calls from high-coverage Hi-C
+```
+python3 inference.py --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolution 10000 --task 2 --input_row_size 224 --input_col_size 224 --stride 20 --bound 0 --model_path hicfoundation_model/hicfoundation_loop.pth.tar --output hicfoundation_inference/loop_detection/ --gpu "0"
+```
+This uses the high-coverage example ``4DNFITUOMFUQ.hic`` to run the inference. <br>
+The output loop detection is saved in ``hicfoundation_inference/loop_detection``. <br>
+You can find HiCFoundation_loop_0.5.bedpe, HiCFoundation_loop_0.75.bedpe and HiCFoundation_loop_0.9.bedpe.  <br>
+HiCFoundation_loop_0.9.bedpe includes the most confident loop calls. You can also choose HiCFoundation_loop_0.5.bedpe if you want more loop calls.
+
+Loop calls from low-coverage Hi-C
+```
+python3 inference.py --input example/GSE174533_1-C11-CB1.2-C11-CB2.merge.hic --batch_size 4 --resolution 10000 --task 2 --input_row_size 224 --input_col_size 224 --stride 20 --bound 0 --model_path hicfoundation_model/hicfoundation_loop_lc.pth.tar --output hicfoundation_inference/loop_detection_lc/ --gpu "0"
+```
+This uses the low-coverage example HSPC in [link](https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE174533&format=file&file=GSE174533%5F1%2DC11%2DCB1%2E2%2DC11%2DCB2%2Emerge%2Ehic)  to run loop calls at low coverage Hi-C. <br>
+The output loop detection is saved in ``hicfoundation_inference/loop_detection_lc/HiCFoundation_loop_0.5.bedpe``. <br>
+You can also check other more confident loop calls under ``hicfoundation_inference/loop_detection_lc`` directory.
 
 
 

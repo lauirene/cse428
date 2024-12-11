@@ -84,8 +84,13 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             current_shape = dataset_shape_dict[chr]
             row_end = min(row_start+args.input_row_size,current_shape[0])
             col_end = min(col_start+args.input_col_size,current_shape[1])
-            # current_input = input[i]
-            # input_count = np.sum(current_input)
+            current_input = input[i]
+            input_count = np.sum(current_input)
+            #ignore empty matrix
+            if input_count==0:
+                print("empty matrix:",chr,row_start,col_start)
+                continue
+
             # # may be not necessary, will check if error happens
             # if input_count<=len(current_input):
             #     #skip super low read count matrix
