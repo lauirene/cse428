@@ -119,15 +119,19 @@ def main_worker(args, input_pkl):
     model_path = os.path.abspath(args.model_path)
     assert os.path.exists(model_path), "model_path does not exist"
     #load model weights
-    checkpoint = torch.load(model_path, map_location='cpu')
-    if "model" in checkpoint:
-        checkpoint_model = checkpoint["model"]
-    elif "state_dict" in checkpoint:
-        checkpoint_model = checkpoint["state_dict"]
+    if args.task!=6:
+        checkpoint = torch.load(model_path, map_location='cpu')
+        if "model" in checkpoint:
+            checkpoint_model = checkpoint["model"]
+        elif "state_dict" in checkpoint:
+            checkpoint_model = checkpoint["state_dict"]
+        else:
+            checkpoint_model = checkpoint
+        msg = model.load_state_dict(checkpoint_model, strict=False)
+        print("Loading pre-train model decoder message:",msg)
     else:
-        checkpoint_model = checkpoint
-    msg = model.load_state_dict(checkpoint_model, strict=False)
-    print("Loading pre-train model decoder message:",msg)
+        checkpoint = torch.load(model_path, map_location='cpu')
+        
 
     model = model.cuda()
     model = nn.DataParallel(model, device_ids=None)
