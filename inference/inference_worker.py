@@ -121,13 +121,13 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
     if infer_task==1:
         return output_dict
     elif infer_task==2 or infer_task==3 or infer_task==5:
-        final_dict=output_dict
-        output_dict={}
-        for chrom in final_dict:
-            row_record = np.concatenate(final_dict[chrom]["row_record"])
-            col_record = np.concatenate(final_dict[chrom]["col_record"])
-            value_record = np.concatenate(final_dict[chrom]["value_record"])
-            count_record = np.concatenate(final_dict[chrom]["count_record"])
+        final_dict={}
+      
+        for chrom in output_dict:
+            row_record = np.concatenate(output_dict[chrom]["row_record"])
+            col_record = np.concatenate(output_dict[chrom]["col_record"])
+            value_record = np.concatenate(output_dict[chrom]["value_record"])
+            count_record = np.concatenate(output_dict[chrom]["count_record"])
             combine_row=np.concatenate([row_record,col_record])
             combine_col=np.concatenate([col_record,row_record])
             combine_value=np.concatenate([value_record,value_record])
@@ -144,8 +144,8 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             prediction_sym.row = prediction_sym.row[select_index]
             prediction_sym.col = prediction_sym.col[select_index]
             print("finish summarize %s prediction"%chrom,prediction_sym.nnz)
-            output_dict[chrom] = triu(prediction_sym,0)
-        return output_dict
+            final_dict[chrom] = triu(prediction_sym,0)
+        return final_dict
     elif infer_task==4:
         return_dict={}
         for chrom in dataset_shape_dict:
