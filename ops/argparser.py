@@ -11,12 +11,12 @@ def argparser_infer():
                         3: Resolution enhancement; \n 4: Epigenomic assay prediction; \n 5: scHi-C enhancement")
     
     parser.add_argument('--input_row_size', default=224, type=int,
-                        help='images input size')
-    parser.add_argument("--input_col_size",default=4000,type=int,help="span size for the input matrix")
-    parser.add_argument("--patch_size",default=16,type=int,help="patch size for the input matrix")
+                        help='input submatrix row size')
+    parser.add_argument("--input_col_size",default=4000,type=int,help="input submatrix column size")
+    parser.add_argument("--patch_size",default=16,type=int,help="patch size for the input submatrix")
 
     parser.add_argument('--stride', default=20, type=int,
-                        help='images input size')
+                        help='scanning stride for the input Hi-C matrix')
     parser.add_argument("--bound",default=200,type=int,help="off-diagonal bound for the scanning")
     parser.add_argument('--num_workers', default=8, type=int,help="data loading workers per GPU")
     parser.add_argument('--model', default='vit_large_patch16', type=str, metavar='MODEL',

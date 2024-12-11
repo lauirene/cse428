@@ -117,12 +117,52 @@ HiGlass: https://higlass.io/
 <details>
 <summary>Inference of fine-tuned HiCFoundation</summary>
 
+## Overview
 This include five different fine-tuned model for 
 - Reproducibility analysis: HiCFoundation will generate embeddings of the input Hi-C, and the submatrix embeddings can be used to compare across biological replicates and non-replicates.
 - Chromatin loop detection: HiCFoudation will generate the loop detection of the input Hi-C in .bedpe format.
 - Resolution enhancement: HiCFoundation will generate enhanced Hi-C map given the input Hi-C.
 - Epigenomic assay profiling: HiCFoundation will generate corressponding epigenomic assays in .bigWig format given the input Hi-C.
 - Single-cell Hi-C enhancement: HiCFoundation will generate the enhanced scHi-C given the input siHi-C.
+
+## Input format
+HiCFoundation supports the .hic/.cool/.pkl/.txt/.pairs/.npy format.
+- .hic/.cool: the common Hi-C format that stores the final matrix of Hi-C experiment
+- .pkl: the pickle file that stores a dict of all Hi-C matrices, with the chrom name as key, and scipy.sparse/numpy array as the value. [chrom_name]:[matrix].
+- .txt/.pairs: the pairs format text that records pairwise interactions in pairs format "#readID\tchr1\tpos1\tchr2\tpos2" that records the chr1:pos1 interactions with chr2:pos2.
+- .npy format: a numpy array that records the contact map of a specific chromosome.
+
+## Example
+Please download the following files to the example folder for example testing purposes.<br>
+- Low coverage Hi-C example: https://www.encodeproject.org/files/ENCFF689CUX/@@download/ENCFF689CUX.hic.
+- High coverage Hi-C example: https://data.4dnucleome.org/files-processed/4DNFITUOMFUQ/. (4DN requires authentication in for downloading, so please download in the webpage)
+- Single-cell Hi-C example: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM7006527 
+(For single-cell Hi-C example, it is already kept in ``example`` directory, so you do not need to downlaod again.)
+
+### Other format examples
+- .cool: https://data.4dnucleome.org/files-processed/4DNFI18UHVRO/ (4DN requires authentication in for downloading, so please download in the webpage)
+- .txt/.pairs: [example/input.pairs](example/GSM7006527_ValaB8w4191.pairs) 
+- .pkl: You can run [utils/hic2array.py](utils/hic2array.py) to convert .hic files to .pkl files to see .pkl format.
+- .npy: You can use [numpy](https://numpy.org/) to save any 2D numpy file to .npy file to run our inference. 
+
+
+## Inference for different tasks
+### 1. Inference embeddings for reproducibility analysis
+```
+python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 1 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu]
+```
+- input_file: a .hic/.cool/.pkl/.txt/.pairs/.npy file records Hi-C matrix.
+- infer_batch_size: batch size of the input during inference, recommended: 4 for small GPU.
+- hic_resolution: resolution of the input matrix, default: 25000 (25 kb for reproducibility task).
+- input_submatrix_length: input submatrix row size, default: 224.
+- input_submatrix_width: input submatrix column size, default: 224.
+- stride: scanning stride for the input Hi-C matrix, default: 20.
+- scan_boundary: off-diagonal bound for the scanning, default: 0.
+- trained_model_path: load fine-tuned model for inference.
+- output_dir: output directory to save the results, default: hicfoundation_inference.
+- gpu: which gpu to use, default: None (will use all GPU).
+
+Example command:
 
 
 <details>
