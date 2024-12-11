@@ -210,6 +210,59 @@ This uses the low-coverage example HSPC in [link](https://www.ncbi.nlm.nih.gov/g
 The output loop detection is saved in ``hicfoundation_inference/loop_detection_lc/HiCFoundation_loop_0.5.bedpe``. <br>
 You can also check other more confident loop calls under ``hicfoundation_inference/loop_detection_lc`` directory.
 
+### 3. Inference for resolution enhancement
+```
+python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 3 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu] --genome_id [genome_id]
+```
+- input_file: a .hic/.cool/.pkl/.txt/.pairs/.npy file records Hi-C matrix.
+- infer_batch_size: batch size of the input during inference, recommended: 4 for small GPU.
+- hic_resolution: resolution of the input matrix, default: 10000 (10 kb for resolution enhancement, should also work for 5kb).
+- input_submatrix_length: input submatrix row size, default: 224.
+- input_submatrix_width: input submatrix column size, default: 224.
+- stride: scanning stride for the input Hi-C matrix, default: 20.
+- scan_boundary: off-diagonal bound for the scanning, default: 0 (to save time).
+- trained_model_path: load fine-tuned model for inference. 
+- output_dir: output directory to save the results, default: hicfoundation_inference.
+- gpu: which gpu to use, default: None (will use all GPU). You can specify --gpu="0" to only use GPU 0, you can also specify --gpu="0,1" to use GPU0 and GPU1.
+- genome_id: genome id for generating .hic file. Must be one of hg18, hg19, hg38, dMel, mm9, mm10, anasPlat1, bTaurus3, canFam3, equCab2, galGal4, Pf3D7, sacCer3, sCerS288c, susScr3, or TAIR10; alternatively, this can be the path of the chrom.sizes file that lists on each line the name and size of the chromosomes.
+<br>
+The output is saved in the ``output_dir``, where the enhanced Hi-C is saved in the HiCFoundation_enhanced.pkl and HiCFoundation_enhanced.[ext], where ext correponds to the format that is same as input. <br>
+In the pkl file, it stores a dict of all enhanced Hi-C matrices, with the chrom name as key, and scipy.sparse/numpy array as the value. <br>
+You can also use [array2hic.py](utils/array2hic.py) and [array2cool.py](utils/array2cool.py) to convert the .pkl to .hic and .cool, respectively. 
+
+#### Example command:
+```
+python3 inference.py --input example/ENCFF689CUX.hic --batch_size 4 --resolution 10000 --task 3 --input_row_size 224 --input_col_size 224 --stride 20 --bound 0 --model_path hicfoundation_model/hicfoundation_resolution.pth.tar --output hicfoundation_inference/resolution_enhancement/ --gpu "0" --genome_id hg38
+```
+This uses the low-coverage example ``ENCFF689CUX.hic`` to run the inference. <br>
+The output enhanced Hi-C is saved in ``hicfoundation_inference/resolution_enhancement/HiCFoundation_enhanced.pkl`` and ``hicfoundation_inference/resolution_enhancement/HiCFoundation_enhanced.hic``.
+
+### 4. Inference for epigenomic assays profiling
+```
+python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 4 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu] 
+```
+- input_file: a .hic/.cool/.pkl/.txt/.pairs/.npy file records Hi-C matrix.
+- infer_batch_size: batch size of the input during inference, recommended: 4 for small GPU.
+- hic_resolution: resolution of the input matrix, default: 1000 (1 kb for epigenomic assays prediction).
+- input_submatrix_length: input submatrix row size, default: 128 (covers 128 kb region to predict 128 kb region).
+- input_submatrix_width: input submatrix column size, default: 4000 (covers full off-diagonal 2 Mb region for more accurate prediction).
+- stride: scanning stride for the input Hi-C matrix, default: 32 (64 should yield similar results but should be much faster).
+- scan_boundary: off-diagonal bound for the scanning, default: 0 (to save time).
+- trained_model_path: load fine-tuned model for inference. 
+- output_dir: output directory to save the results, default: hicfoundation_inference.
+- gpu: which gpu to use, default: None (will use all GPU). You can specify --gpu="0" to only use GPU 0, you can also specify --gpu="0,1" to use GPU0 and GPU1.
+<br>
+The output is saved in the ``output_dir``, where the predicted epigenomic assays are saved in the HiCFoundation_epigenomic_assay_prediction_[assay_name].pkl and HiCFoundation_pred_[assay_name].bigWig.  <br>
+The output assay includes six different tracks: 'CTCF' (TF ChIP-seq),'H3K4me3' (histone ChIP-seq),'H3K27ac' (histone ChIP-seq),'H3K27me3' (histone ChIP-seq),'ATAC-seq', and 'DNase-seq'. <br>
+In the pkl file, it stores a dict of correspondng assays, with the chrom name as key, and numpy array records the predicted assay at 1kb resolution. <br>
+In the bigWig file, it records the signals of corresponding assays, you can visualize it [online](https://igv.org/app/). <br>
+You can also use [array2bigwig.py](utils/array2bigwig.py) to convert the .pkl to .bigWig file for visualization. 
+
+#### Example command:
+```
+python3 inference.py --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolution 1000 --task 4 --input_row_size 128 --input_col_size 4000 --stride 32 --bound 0 --model_path hicfoundation_model/hicfoundation_epigenomic.pth.tar --output hicfoundation_inference/epigenomic_profiling/ --gpu "0" 
+```
+
 
 
 </details>

@@ -158,7 +158,7 @@ def main_worker(args, input_pkl):
         output_path = os.path.join(output_dir,"HiCFoundation_epigenomic_assay_prediction.pkl")
         write_pickle(return_dict,output_path)
         #write to bigWig file
-        key_word_list=['CTCF','H3K4me3','H3K27ac','H3K27me3','ATACseq','DNase']
+        key_word_list=['CTCF','H3K4me3','H3K27ac','H3K27me3','ATAC-seq','DNase-seq']
         for key_index,key_word in enumerate(key_word_list):
             current_dict={}
             for chrom in return_dict:

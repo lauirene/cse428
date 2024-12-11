@@ -123,7 +123,7 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
     elif infer_task==2 or infer_task==3 or infer_task==5:
         final_dict=output_dict
         output_dict={}
-        for chrom in output_dict:
+        for chrom in final_dict:
             row_record = np.concatenate(final_dict[chrom]["row_record"])
             col_record = np.concatenate(final_dict[chrom]["col_record"])
             value_record = np.concatenate(final_dict[chrom]["value_record"])
