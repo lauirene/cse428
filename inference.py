@@ -18,7 +18,8 @@ def main(args):
     #for reproducibility analysis, we need to smooth the matrix to generate embeddings.
     if args.task==1:
         from ops.smooth_matrix import smooth_pkl
-        input_pkl = smooth_pkl(input_pkl,os.path.abspath(args.output))
+        smooth_pkl_file = os.path.join(output_dir,"input_smoothed.pkl")
+        input_pkl = smooth_pkl(input_pkl,smooth_pkl_file)
         print("Reproducibility analysis smoothed input matrix saved to ",input_pkl)
     from inference.main_worker import main_worker
     main_worker(args, input_pkl)
