@@ -102,7 +102,8 @@ def generate_loop(return_dict,threshold,output_bedpe,config_resolution):
                 print(i, "detect length: mean",len(cur_loc_list),"total",len(mean_loc_list))
        
         print("%s detect length: mean"%chrom,len(mean_loc_list))
-        
+        if "_" in chrom:
+            chrom = chrom.split("_")[0]
         append_record(output_bedpe,mean_loc_list,chrom,resolution=config_resolution)
 def main_worker(args, input_pkl):
     resolution = args.resolution
@@ -183,6 +184,12 @@ def main_worker(args, input_pkl):
     elif args.task==3:
         #convert to hic format as final output
         output_pkl = os.path.join(output_dir,"HiCFoundation_enhanced.pkl")
+        #revise the return dict key if it has "_", make to one chromosome
+        for key in list(return_dict.keys()):
+            if "_" in key:
+                key_list = key.split("_")
+                return_dict[key_list[0]] = return_dict[key]
+                del return_dict[key]
         write_pickle(return_dict,output_pkl)
         input_file = os.path.abspath(args.input)
         extention_name = input_file.split('.')[-1]
@@ -197,7 +204,11 @@ def main_worker(args, input_pkl):
         for key_index,key_word in enumerate(key_word_list):
             current_dict={}
             for chrom in return_dict:
-                current_dict[chrom] = return_dict[chrom][key_index]
+                if "_" in chrom:
+                    chrom_key = chrom.split("_")[0]
+                else:
+                    chrom_key = chrom
+                current_dict[chrom_key] = return_dict[chrom][key_index]
             current_pkl = os.path.join(output_dir,"HiCFoundation_epigenomic_assay_prediction_%s.pkl"%key_word)
             write_pickle(current_dict,current_pkl)
             output_bigwig = os.path.join(output_dir,"HiCFoundation_pred_%s.bigWig"%key_word)
