@@ -40,6 +40,7 @@ class Inference_Dataset(torch.utils.data.Dataset):
         self.locus_embedding = locus_embedding
         self.total_count = 0
         self.input_index = []
+        self.dataset_shape = {}
         new_data = {}
         half_window_width = self.window_width//2
         half_window_height = self.window_height//2
