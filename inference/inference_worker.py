@@ -148,7 +148,8 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
                 real_col_end = min(current_shape[1],refer_col+args.input_col_size//2)
                 patch_row_range = (real_row_end-real_row_start)//args.patch_size
                 patch_col_range = (real_col_end-real_col_start)//args.patch_size
-                cur_output = cur_output[:patch_row_range,:patch_col_range]
+                # cur_output = cur_output[:patch_row_range,:patch_col_range]
+                # we can let the patch embedding choice.
                 
                 for row_index in range(real_row_start,real_row_end, args.patch_size):
                     for col_index in range(real_col_start,real_col_end,args.patch_size):
