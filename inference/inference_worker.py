@@ -52,6 +52,13 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
         cutoff= 1000
         cutoff = torch.tensor(cutoff).float().cuda()
         log_cutoff = torch.log10(cutoff+1).cuda()
+        output_dict={}
+        for chrom in dataset_shape_dict:
+            current_shape = dataset_shape_dict[chrom]
+            current_length = current_shape[0]
+            mean_array = np.zeros(current_shape)
+            count_array = np.zeros(current_shape)
+            output_dict[chrom] = {"mean":mean_array,"count":count_array}
     for data_iter_step, data in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
         input,total_count,indexes = data
         input = input.cuda()
@@ -72,12 +79,12 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             output = output*log_cutoff
             output = torch.pow(10,output)-1
             output = torch.clamp(output,min=0)
-        elif infer_task==5:
-            #scHi-C enhancement
-            output = output*log_cutoff
-            output = torch.pow(10,output)-1
-            output = torch.round(output)-2
-            output = torch.clamp(output,min=0)
+        # elif infer_task==5:
+        #     #scHi-C enhancement
+        #     output = output*log_cutoff
+        #     output = torch.pow(10,output)-1
+        #     output = torch.round(output)-2
+        #     output = torch.clamp(output,min=0)
         output = output.detach().cpu().numpy()
         input = input.detach().cpu().numpy()
         chrs, row_starts, col_starts = indexes
@@ -123,6 +130,7 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
                 output_dict[chr]['count'][:, row_start:row_end] += 1
             elif infer_task == 5:
                 #scHi-C enhancement
+                print(current_shape)
                 if current_shape[0] < args.input_row_size or current_shape[1] < args.input_col_size:
                     #remove padding regions
                     left_up_pad_size = (args.input_row_size - current_shape[0]) // 2
@@ -130,21 +138,25 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
                     left_up_pad_size_col = (args.input_col_size - current_shape[1]) // 2
                     right_down_pad_size_col = args.input_col_size - current_shape[1] - left_up_pad_size_col
                     cur_output = cur_output[left_up_pad_size:-right_down_pad_size, left_up_pad_size_col:-right_down_pad_size_col]
+                    output_dict[chr]['mean'] += cur_output
+                    output_dict[chr]['count'] += 1
                 else:
                     cur_output = cur_output[row_start:row_start+args.input_row_size, col_start:col_start+args.input_col_size]
-                cur_output = array_to_coo(cur_output)
-                output_dict[chr]["row_record"].append(cur_output.row+row_start)
-                output_dict[chr]["col_record"].append(cur_output.col+col_start)
-                output_dict[chr]["value_record"].append(cur_output.data)
-                output_dict[chr]["count_record"].append([1]*len(cur_output.data))
+                    output_dict[chr]['mean'][row_start:row_start+args.input_row_size, col_start:col_start+args.input_col_size] += cur_output
+                    output_dict[chr]['count'][row_start:row_start+args.input_row_size, col_start:col_start+args.input_col_size] += 1
+                # cur_output = array_to_coo(cur_output)
+                # output_dict[chr]["row_record"].append(cur_output.row+row_start)
+                # output_dict[chr]["col_record"].append(cur_output.col+col_start)
+                # output_dict[chr]["value_record"].append(cur_output.data)
+                # output_dict[chr]["count_record"].append([1]*len(cur_output.data))
+                
 
 
     
     if infer_task==1:
         return output_dict
-    elif infer_task==2 or infer_task==3 or infer_task==5:
+    elif infer_task==2 or infer_task==3:
         final_dict={}
-      
         for chrom in output_dict:
             row_record = np.concatenate(output_dict[chrom]["row_record"])
             col_record = np.concatenate(output_dict[chrom]["col_record"])
@@ -176,5 +188,19 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             count_array =np.maximum(count_array,1)
             mean_array = mean_array/count_array
             mean_array = np.nan_to_num(mean_array)
+            return_dict[chrom] = mean_array
+        return return_dict
+    elif infer_task == 5:
+        return_dict={}
+        for chrom in dataset_shape_dict:
+            count_array=output_dict[chrom]['count']
+            mean_array=output_dict[chrom]['mean']
+            count_array =np.maximum(count_array,1)
+            mean_array = mean_array/count_array
+            mean_array = np.nan_to_num(mean_array)
+            mean_array = mean_array*log_cutoff
+            mean_array = np.power(10, mean_array) - 1
+            mean_array = np.round(mean_array) - 2
+            mean_array = np.clip(0, np.max(mean_array))
             return_dict[chrom] = mean_array
         return return_dict
