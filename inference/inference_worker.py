@@ -110,9 +110,9 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             row_end = min(row_start+args.input_row_size,current_shape[0])
             col_end = min(col_start+args.input_col_size,current_shape[1])
             current_input = input[i]
-            input_count = np.sum(current_input)
+            #input_count = np.sum(current_input)
             #ignore empty matrix
-            if input_count==0:
+            if np.isnan(np.sum(current_input)):
                 print("empty matrix:",chr,row_start,col_start)
                 continue
 
@@ -275,7 +275,7 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             cur_embedding = np.mean(cur_embedding,axis=0)
             return_dict["chromo_embedding"][chrom] = cur_embedding
         #get average genome embedding
-        all_embedding = list(chrom_embedding.values())
+        all_embedding = list(return_dict["chromo_embedding"].values())
         all_embedding = np.stack(all_embedding,axis=0)
         all_embedding = np.mean(all_embedding,axis=0)
         return_dict["genome_embedding"] = all_embedding
