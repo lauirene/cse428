@@ -115,15 +115,20 @@ def pkl2others(input_pkl, output_file,config_resolution,genome_id):
     if output_file.endswith('.txt') or output_file.endswith('.pairs'):
         #write to simple txt
         # [chr1, pos1, chr2, pos2, count]
-        
         with open(output_file,'w') as file:
             file.write("#readID\tchr1\tpos1\tchr2\tpos2\tcount\n")
             for chrom in data:
-                for i in range(data[chrom].nnz):
-                    row = data[chrom].row[i]
-                    col = data[chrom].col[i]
-                    count = data[chrom].data[i]
-                    file.write(f".\t{chrom}\t{row*config_resolution}\t{chrom}\t{col*config_resolution}\t{count}\n")
+                if type(data[chrom]) == np.ndarray:
+                    for i in range(data[chrom].shape[0]):
+                        for j in range(data[chrom].shape[1]):
+                            if data[chrom][i,j]>0:
+                                file.write(f".\t{chrom}\t{i*config_resolution}\t{chrom}\t{j*config_resolution}\t{data[chrom][i,j]}\n")
+                else:
+                    for i in range(data[chrom].nnz):
+                        row = data[chrom].row[i]
+                        col = data[chrom].col[i]
+                        count = data[chrom].data[i]
+                        file.write(f".\t{chrom}\t{row*config_resolution}\t{chrom}\t{col*config_resolution}\t{count}\n")
     elif output_file.endswith('.npy'):
         if len(data)>1:
             print("Warning: multiple chromosomes detected, please check the output in .pkl format:",input_pkl)
