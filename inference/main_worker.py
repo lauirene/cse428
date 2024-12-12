@@ -47,6 +47,7 @@ def configure_dataset(args,input_pkl):
     stride = args.stride
     input_row_size = args.input_row_size
     input_col_size = args.input_col_size
+    task = args.task
     dataset = Inference_Dataset(data_path=input_pkl,   
                             transform=transform_input,
                             stride=stride,
@@ -55,7 +56,8 @@ def configure_dataset(args,input_pkl):
                             max_cutoff=max_cutoff,
                             fill_diagonal_zero=fill_diagonal_zero,
                             bounding=bounding,
-                            locus_embedding=locus_embedding)
+                            locus_embedding=locus_embedding,
+                            task=task)
     sample_batch_size = args.batch_size
     data_loader_test = torch.utils.data.DataLoader(
         dataset,
