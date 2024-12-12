@@ -182,7 +182,7 @@ def interpolate_pos_embed(model, checkpoint_model,use_decoder=True):
 
 def interpolate_pos_embed_inputsize(model, checkpoint_model,input_size=(16,4000),
                                     use_decoder=True):
-    if 'pos_embed' in checkpoint_model:
+    if 'pos_embed' in checkpoint_model and not use_decoder:
         pos_embed_checkpoint = checkpoint_model['pos_embed']
         embedding_size = pos_embed_checkpoint.shape[-1]
         num_patches = model.patch_embed.num_patches
