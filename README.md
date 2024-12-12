@@ -94,16 +94,21 @@ conda deactivate
 
 ### 4. Download the trained HiCFoundation model
 You can download our pre-trained and fine-tuned model to ``hicfoundation_model`` for inference, embedding generation and fine-tuning purposes. <br>
-HiCFoundation model weights: [hicfoundation_model]() <br>
+HiCFoundation model weights: [hicfoundation_model](https://huggingface.co/wang3702/hicfoundation_models/) <br>
 
-You can also use command line to do this
+You can also run the following command line to do this
 ```commandline
 cd hicfoundation_model
-wget 
+wget https://huggingface.co/wang3702/hicfoundation_models/blob/main/hicfoundation_pretrain.pth.tar
+wget https://huggingface.co/wang3702/hicfoundation_models/blob/main/hicfoundation_reproducibility.pth.tar
+wget https://huggingface.co/wang3702/hicfoundation_models/blob/main/hicfoundation_loop.pth.tar
+wget https://huggingface.co/wang3702/hicfoundation_models/blob/main/hicfoundation_loop_lc.pth.tar
+wget https://huggingface.co/wang3702/hicfoundation_models/blob/main/hicfoundation_resolution.pth.tar
+wget https://huggingface.co/wang3702/hicfoundation_models/blob/main/hicfoundation_epigenomic.pth.tar
+wget https://huggingface.co/wang3702/hicfoundation_models/blob/main/hicfoundation_schic.pth.tar
 cd ..
 ```
 
-If the link failed, you can also download our model files via our [lab server]() to ``hicfoundation_model`` directory. 
 
 ### 5. (Optional) Visualization software
 Juicebox: https://aidenlab.org/juicebox/
@@ -280,7 +285,7 @@ python3 inference.py --input [input_file] --batch_size [infer_batch_size] --reso
 - input_submatrix_width: input submatrix column size, default: 224 (covers 224 MB region to predict 224 MB region).
 - stride: scanning stride for the input Hi-C matrix, default: 20.
 - scan_boundary: off-diagonal bound for the scanning, recommended: 250..
-- trained_model_path: load fine-tuned model for inference. Here the model should be [hicfoundation_sc.pth.tar](hicfoundation_model/hicfoundation_sc.pth.tar). Make sure you follow the installment instructions to download it before you run.
+- trained_model_path: load fine-tuned model for inference. Here the model should be [hicfoundation_schic.pth.tar](hicfoundation_model/hicfoundation_schic.pth.tar). Make sure you follow the installment instructions to download it before you run.
 - output_dir: output directory to save the results, default: hicfoundation_inference.
 - gpu: which gpu to use, default: None (will use all GPU). You can specify --gpu="0" to only use GPU 0, you can also specify --gpu="0,1" to use GPU0 and GPU1.
 
@@ -291,7 +296,7 @@ The output is saved in the ``output_dir``, where the enhanced single-cell HiC ma
 ##### Example command:
 
 ```
-python3 inference.py --input example/GSM7006609_ValbB8w1081.pairs --batch_size 4 --resolution 1000000 --task 5 --input_row_size 224 --input_col_size 224 --stride 20 --bound 250 --model_path hicfoundation_model/hicfoundation_sc.pth.tar --output hicfoundation_inference/sc_hic_enhancement --gpu "0"
+python3 inference.py --input example/GSM7006609_ValbB8w1081.pairs --batch_size 4 --resolution 1000000 --task 5 --input_row_size 224 --input_col_size 224 --stride 20 --bound 250 --model_path hicfoundation_model/hicfoundation_schic.pth.tar --output hicfoundation_inference/sc_hic_enhancement --gpu "0"
 ```
 
 This uses the given  example ``GSM7006609_ValbB8w1081.pairs`` to run the inference. <br>
