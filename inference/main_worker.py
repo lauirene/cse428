@@ -158,7 +158,8 @@ def main_worker(args, input_pkl):
         checkpoint = torch.load(model_path, map_location='cpu')
         checkpoint_model = checkpoint['model']
         #loading pre-trained decoder
-        interpolate_pos_embed_inputsize(model, checkpoint['model'],use_decoder=True)
+        interpolate_pos_embed_inputsize(model, checkpoint['model'],
+                                        input_size=patch_wise_size,use_decoder=True)
         msg = model.load_state_dict(checkpoint_model, strict=False)
         print("Loading pre-train model decoder message:",msg)
 
