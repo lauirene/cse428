@@ -219,6 +219,11 @@ class Finetune_Model_Head(nn.Module):
             final_embedding = []
             for embedding in embedding_list:
                 embedding = embedding[:,self.num_additional_token:,:]
+                # shapre N, L, C
+                # reshape to N, H,W,C
+                num_patch_row = self.pos_embed_size[0]
+                num_patch_col = self.pos_embed_size[1]
+                embedding = embedding.reshape(shape=(embedding.shape[0], num_patch_row,num_patch_col,-1)) 
                 final_embedding.append(embedding)
             return final_embedding
 

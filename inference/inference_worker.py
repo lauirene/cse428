@@ -18,6 +18,7 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
     args: arguments for inference
     """
     model.eval()
+    config_resolution = args.resolution
     metric_logger = MetricLogger(delimiter="  ")
     header = 'Inference: '
     print_freq = args.print_freq
@@ -41,6 +42,8 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             mean_array = np.zeros([num_track,current_length])
             count_array = np.zeros([num_track,current_length])
             output_dict[chrom] = {"mean":mean_array,"count":count_array}
+    elif infer_task==6:
+        output_dict={"submat_embedding":defaultdict(list),"patch_embedding":defaultdict(list)}
 
     if infer_task==3:
         #resolution enhancement
@@ -79,12 +82,19 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             output = output*log_cutoff
             output = torch.pow(10,output)-1
             output = torch.clamp(output,min=0)
+
+        elif infer_task==6:
+            #get the specified encoder/decoder layer's output
+            output = output[args.embed_depth]
+
+
         # elif infer_task==5:
         #     #scHi-C enhancement
         #     output = output*log_cutoff
         #     output = torch.pow(10,output)-1
         #     output = torch.round(output)-2
         #     output = torch.clamp(output,min=0)
+
         output = output.detach().cpu().numpy()
         input = input.detach().cpu().numpy()
         chrs, row_starts, col_starts = indexes
@@ -113,7 +123,7 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             #     continue
             cur_output = output[i]
             if infer_task==1:
-                match_key = f"{chr}:{row_start},{col_start}"
+                match_key = f"{chr}:{row_start*config_resolution},{col_start*config_resolution}"
                 output_dict[match_key] = cur_output
             elif infer_task==2 or infer_task==3:
                 #loop calling, resolution enhancement
@@ -128,6 +138,37 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
                 cur_output = cur_output[:, :row_end-row_start]
                 output_dict[chr]['mean'][:, row_start:row_end] += cur_output
                 output_dict[chr]['count'][:, row_start:row_end] += 1
+
+            elif infer_task==6:
+                refer_row = row_start
+                refer_col = col_start
+                real_row_start = max(0,refer_row-args.input_row_size//2)
+                real_col_start = max(0,refer_col-args.input_col_size//2)
+                real_row_end = min(current_shape[0],refer_row+args.input_row_size//2)
+                real_col_end = min(current_shape[1],refer_col+args.input_col_size//2)
+                patch_row_range = (real_row_end-real_row_start)//args.patch_size
+                patch_col_range = (real_col_end-real_col_start)//args.patch_size
+                cur_output = cur_output[:patch_row_range,:patch_col_range]
+                
+                for row_index in range(real_row_start,real_row_end):
+                    for col_index in range(real_col_start,real_col_end):
+                        row_index = int(row_index)
+                        col_index = int(col_index)
+                        patch_row_index = (row_index-real_row_start)//args.patch_size
+                        patch_col_index = (col_index-real_col_start)//args.patch_size
+                        cur_patch_embedding = cur_output[patch_row_index,patch_col_index]
+                        middle_row = row_index+args.patch_size//2
+                        middle_col = col_index+args.patch_size//2
+                        search_key = f"{chr}:{middle_row*config_resolution},{middle_col*config_resolution}"
+                        output_dict["patch_embedding"][search_key].append(cur_patch_embedding)
+                        
+                search_key = f"{chr}:{refer_row*config_resolution},{refer_col*config_resolution}"
+                #average embedding
+                all_embedding = cur_output.reshape(shape=(-1,cur_output.shape[-1]))
+                all_embedding = np.mean(all_embedding,axis=0)
+                output_dict["submat_embedding"][search_key].append(all_embedding)
+
+
             elif infer_task == 5:
                 #scHi-C enhancement
                 print(current_shape)
@@ -142,14 +183,11 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
                     output_dict[chr]['count'] += 1
                 else:
                     cur_output = cur_output[row_start:row_start+args.input_row_size, col_start:col_start+args.input_col_size]
-                    output_dict[chr]['mean'][row_start:row_start+args.input_row_size, col_start:col_start+args.input_col_size] += cur_output
-                    output_dict[chr]['count'][row_start:row_start+args.input_row_size, col_start:col_start+args.input_col_size] += 1
-                # cur_output = array_to_coo(cur_output)
-                # output_dict[chr]["row_record"].append(cur_output.row+row_start)
-                # output_dict[chr]["col_record"].append(cur_output.col+col_start)
-                # output_dict[chr]["value_record"].append(cur_output.data)
-                # output_dict[chr]["count_record"].append([1]*len(cur_output.data))
-                
+                cur_output = array_to_coo(cur_output)
+                output_dict[chr]["row_record"].append(cur_output.row+row_start)
+                output_dict[chr]["col_record"].append(cur_output.col+col_start)
+                output_dict[chr]["value_record"].append(cur_output.data)
+                output_dict[chr]["count_record"].append([1]*len(cur_output.data))
 
 
     
@@ -181,6 +219,7 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             final_dict[chrom] = triu(prediction_sym,0)
         return final_dict
     elif infer_task==4:
+        #epigenomic assay prediction
         return_dict={}
         for chrom in dataset_shape_dict:
             count_array=output_dict[chrom]['count']
@@ -203,4 +242,38 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             mean_array = np.round(mean_array) - 2
             mean_array = np.clip(0, np.max(mean_array))
             return_dict[chrom] = mean_array
+        return return_dict
+
+    elif infer_task==6:
+        #embedding generation
+        return_dict={"submat_embedding":{},"patch_embedding":{},"chromo_embedding":{},"genome_embedding":{}}
+
+        #read patch embedding in output_dict, average the same location embedding
+        for key in output_dict["patch_embedding"]:
+            cur_embedding = output_dict["patch_embedding"][key]
+            cur_embedding = np.stack(cur_embedding,axis=0)
+            cur_embedding = np.mean(cur_embedding,axis=0)
+            return_dict["patch_embedding"][key] = cur_embedding
+        
+        #read submat embedding in output_dict, average the same location embedding
+        chrom_embedding = defaultdict(list)
+        for key in output_dict["submat_embedding"]:
+            cur_embedding = output_dict["submat_embedding"][key]
+            cur_embedding = np.stack(cur_embedding,axis=0)
+            cur_embedding = np.mean(cur_embedding,axis=0)
+            return_dict["submat_embedding"][key] = cur_embedding
+            chrom = key.split(":")[0]
+            chrom_embedding[chrom].append(cur_embedding)
+        
+        #get average chromo embedding
+        for chrom in chrom_embedding:
+            cur_embedding = chrom_embedding[chrom]
+            cur_embedding = np.stack(cur_embedding,axis=0)
+            cur_embedding = np.mean(cur_embedding,axis=0)
+            return_dict["chromo_embedding"][chrom] = cur_embedding
+        #get average genome embedding
+        all_embedding = list(chrom_embedding.values())
+        all_embedding = np.stack(all_embedding,axis=0)
+        all_embedding = np.mean(all_embedding,axis=0)
+        return_dict["genome_embedding"] = all_embedding
         return return_dict

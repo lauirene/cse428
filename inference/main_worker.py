@@ -152,7 +152,7 @@ def main_worker(args, input_pkl):
         else:
             checkpoint_model = checkpoint
         msg = model.load_state_dict(checkpoint_model, strict=False)
-        print("Loading pre-train model decoder message:",msg)
+        print("Loading fine-tuned task-specific model message:",msg)
     else:
         
         checkpoint = torch.load(model_path, map_location='cpu')
@@ -210,6 +210,8 @@ def main_worker(args, input_pkl):
             write_pickle(current_dict,current_pkl)
             output_bigwig = os.path.join(output_dir,"HiCFoundation_pred_%s.bigWig"%key_word)
             array2bigwig(current_pkl,output_bigwig,resolution=resolution)
+    
+
     elif args.task==5:
         #scHi-C enhancement
         output_path = os.path.join(output_dir,"HiCFoundation_sc_enhanced.pkl")
@@ -218,6 +220,11 @@ def main_worker(args, input_pkl):
         extention_name = input_file.split('.')[-1]
         output_file = os.path.join(output_dir,"HiCFoundation_sc_enhanced."+extention_name)
         pkl2others(output_path, output_file,resolution,args.genome_id)
+    elif args.task==6:  
+        #embedding generation
+        output_path = os.path.join(output_dir,"HiCFoundation_embedding.pkl")
+        write_pickle(return_dict,output_path)
+
 
     print("Inference finished!")
     print("Enjoy your HiCFoundation results!")

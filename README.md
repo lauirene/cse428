@@ -114,10 +114,11 @@ HiGlass: https://higlass.io/
 
 # Usage
 
+## Inference of fine-tuned HiCFoundation
 <details>
-<summary>Inference of fine-tuned HiCFoundation</summary>
+<summary>Inference of HiCFoundation for chromatin architecture, multi-omics and single-cell analysis</summary>
 
-## Overview
+### Overview
 This include five different fine-tuned model for 
 - Reproducibility analysis: HiCFoundation will generate embeddings of the input Hi-C, and the submatrix embeddings can be used to compare across biological replicates and non-replicates.
 - Chromatin loop detection: HiCFoudation will generate the loop detection of the input Hi-C in .bedpe format.
@@ -125,14 +126,14 @@ This include five different fine-tuned model for
 - Epigenomic assay profiling: HiCFoundation will generate corressponding epigenomic assays in .bigWig format given the input Hi-C.
 - Single-cell Hi-C enhancement: HiCFoundation will generate the enhanced scHi-C given the input siHi-C.
 
-## Input format
+### Input format
 HiCFoundation supports the .hic/.cool/.pkl/.txt/.pairs/.npy format.
 - .hic/.cool: the common Hi-C format that stores the final matrix of Hi-C experiment
 - .pkl: the pickle file that stores a dict of all Hi-C matrices, with the chrom name as key, and scipy.sparse/numpy array as the value. [chrom_name]:[matrix].
 - .txt/.pairs: the pairs format text that records pairwise interactions in pairs format "#readID\tchr1\tpos1\tchr2\tpos2" that records the chr1:pos1 interactions with chr2:pos2.
 - .npy format: a numpy array that records the contact map of a specific chromosome.
 
-## Example
+### Example
 Please download the following files to the example folder for example testing purposes.<br>
 - Low coverage Hi-C example: https://www.encodeproject.org/files/ENCFF689CUX/@@download/ENCFF689CUX.hic
 - Low coverage Hi-C example2: https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE174533&format=file&file=GSE174533%5F1%2DC11%2DCB1%2E2%2DC11%2DCB2%2Emerge%2Ehic
@@ -140,15 +141,15 @@ Please download the following files to the example folder for example testing pu
 - Single-cell Hi-C example: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM7006609 
 (For single-cell Hi-C example, it is already kept in ``example`` directory, so you do not need to downlaod again.)
 
-### Other format examples
+#### Other format examples
 - .cool: https://data.4dnucleome.org/files-processed/4DNFI18UHVRO/ (4DN requires authentication in for downloading, so please download in the webpage)
 - .txt/.pairs: [example/input.pairs](example/GSM7006527_ValaB8w4191.pairs) 
 - .pkl: You can run [utils/hic2array.py](utils/hic2array.py) to convert .hic files to .pkl files to see .pkl format.
-- .npy: You can use [numpy](https://numpy.org/) to save any 2D numpy file to .npy file to run our inference. 
+- .npy: You can use [numpy](https://numpy.org/) to save any 2D matrix to .npy file to run our inference. 
 
 
-## Inference for different tasks
-### 1. Inference embeddings for reproducibility analysis
+### Inference for different tasks
+#### 1. Inference embeddings for reproducibility analysis
 ```
 python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 1 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu]
 ```
@@ -167,14 +168,14 @@ The output is saved in the ``output_dir``, where the embedding is saved in "HiCF
 The key of the dict is "chrom:row_index,col_index", and the value is the corresponding embedding. <br>
 This embedding corresponds to the submatrix of [row_index:row_index+input_row_size, col_index:col_index+input_col_size] at chromsome ``chrom``.
 
-#### Example command:
+##### Example command:
 ```
 python3 inference.py --input example/ENCFF689CUX.hic --batch_size 4 --resolution 25000 --task 1 --input_row_size 224 --input_col_size 224 --stride 20 --bound 0 --model_path hicfoundation_model/hicfoundation_reproducibility.pth.tar --output hicfoundation_inference/reproducibility_analysis/ --gpu "0"
 ```
 This uses the low-coverage example ``ENCFF689CUX.hic`` to run the inference. <br>
 The output embedding is saved in ``hicfoundation_inference/reproducibility_analysis/HiCFoundation_reproducibility_embedding.pkl``.
 
-### 2. Inference for chromatin loop detection
+#### 2. Inference for chromatin loop detection
 ```
 python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 2 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu]
 ```
@@ -192,7 +193,7 @@ python3 inference.py --input [input_file] --batch_size [infer_batch_size] --reso
 The output is saved in the ``output_dir``, where the loop is saved in HiCFoundation_loop_[threshold].bedpe. We kept three confidence level 0.5,0.75,0.9 for your choice. For conservative loop calls, we would recommend you to use 0.9 threshold for loop calls. For low-coverage Hi-C, we would recommend you to to use 0.5 threshold for loop calls. <br>
 Each line records a loop calls in the .bedpe file in format of [chr1 x1 x2 chr2 y1 y2], where chr1 typically is the same as chr2; [x1 x2] records the spanning region of left loop anchor, [y1 y2] records the spanning region of the right loop anchor.
 
-#### Example command:
+##### Example command:
 Loop calls from high-coverage Hi-C
 ```
 python3 inference.py --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolution 10000 --task 2 --input_row_size 224 --input_col_size 224 --stride 20 --bound 0 --model_path hicfoundation_model/hicfoundation_loop.pth.tar --output hicfoundation_inference/loop_detection/ --gpu "0"
@@ -210,7 +211,7 @@ This uses the low-coverage example HSPC in [link](https://www.ncbi.nlm.nih.gov/g
 The output loop detection is saved in ``hicfoundation_inference/loop_detection_lc/HiCFoundation_loop_0.5.bedpe``. <br>
 You can also check other more confident loop calls under ``hicfoundation_inference/loop_detection_lc`` directory.
 
-### 3. Inference for resolution enhancement
+#### 3. Inference for resolution enhancement
 ```
 python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 3 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu] --genome_id [genome_id]
 ```
@@ -230,14 +231,14 @@ The output is saved in the ``output_dir``, where the enhanced Hi-C is saved in t
 In the pkl file, it stores a dict of all enhanced Hi-C matrices, with the chrom name as key, and scipy.sparse/numpy array as the value. <br>
 You can also use [array2hic.py](utils/array2hic.py) and [array2cool.py](utils/array2cool.py) to convert the .pkl to .hic and .cool, respectively. 
 
-#### Example command:
+##### Example command:
 ```
 python3 inference.py --input example/ENCFF689CUX.hic --batch_size 4 --resolution 10000 --task 3 --input_row_size 224 --input_col_size 224 --stride 20 --bound 0 --model_path hicfoundation_model/hicfoundation_resolution.pth.tar --output hicfoundation_inference/resolution_enhancement/ --gpu "0" --genome_id hg38
 ```
 This uses the low-coverage example ``ENCFF689CUX.hic`` to run the inference. <br>
 The output enhanced Hi-C is saved in ``hicfoundation_inference/resolution_enhancement/HiCFoundation_enhanced.pkl`` and ``hicfoundation_inference/resolution_enhancement/HiCFoundation_enhanced.hic``.
 
-### 4. Inference for epigenomic assays profiling
+#### 4. Inference for epigenomic assays profiling
 ```
 python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 4 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu] 
 ```
@@ -259,7 +260,7 @@ In the pkl file, it stores a dict of correspondng assays, with the chrom name as
 In the bigWig file, it records the signals of corresponding assays, you can visualize it [online](https://igv.org/app/). <br>
 You can also use [array2bigwig.py](utils/array2bigwig.py) to convert the .pkl to .bigWig file for visualization. 
 
-#### Example command:
+##### Example command:
 ```
 python3 inference.py --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolution 1000 --task 4 --input_row_size 128 --input_col_size 4000 --stride 32 --bound 0 --model_path hicfoundation_model/hicfoundation_epigenomic.pth.tar --output hicfoundation_inference/epigenomic_profiling/ --gpu "0" 
 ```
@@ -269,7 +270,65 @@ The output enhanced Hi-C is saved in ``hicfoundation_inference/epigenomic_profil
 
 </details>
 
-## Generate Hi-C multi-scale embeddings
+## Generate multi-scale Hi-C embeddings
+
+<details>
+<summary>Inference of pre-trained HiCFoundation model to generate patch, submatrix, chromosome and genome wide Hi-C embeddings.</summary>
+
+### Overview
+This include four levels of embeddings of the pre-trained HiCFoundation model
+- patch level embdding: an embedding vector corresponds to a 16*16 patch space at specified resolution.
+- submatrix level embedding: an embedding vector corresponds to the specified submatrix at specified resolution.
+- chromosome level embedding: embedding vectors correspond to different chromosomes at 
+specified resolution.
+- genome wide embedding: an embedding vector corresponds to the input Hi-C at specified resolution.
+
+### Input format
+HiCFoundation supports the .hic/.cool/.pkl/.txt/.pairs/.npy format.
+- .hic/.cool: the common Hi-C format that stores the final matrix of Hi-C experiment
+- .pkl: the pickle file that stores a dict of all Hi-C matrices, with the chrom name as key, and scipy.sparse/numpy array as the value. [chrom_name]:[matrix].
+- .txt/.pairs: the pairs format text that records pairwise interactions in pairs format "#readID\tchr1\tpos1\tchr2\tpos2" that records the chr1:pos1 interactions with chr2:pos2.
+- .npy format: a numpy array that records the contact map of a specific chromosome.
+
+### Example
+Please download the following files to the example folder for example testing purposes.<br>
+- A Hi-C example: https://data.4dnucleome.org/files-processed/4DNFITUOMFUQ/. (4DN requires authentication in for downloading, so please download in the webpage)
+- A single-cell Hi-C example: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM7006527 
+(For single-cell Hi-C example, it is already kept in ``example`` directory, so you do not need to downlaod again.)
+
+#### Other format examples
+- .cool: https://data.4dnucleome.org/files-processed/4DNFI18UHVRO/ (4DN requires authentication in for downloading, so please download in the webpage)
+- .txt/.pairs: [example/input.pairs](example/GSM7006527_ValaB8w4191.pairs) 
+- .pkl: You can run [utils/hic2array.py](utils/hic2array.py) to convert .hic files to .pkl files to see .pkl format.
+- .npy: You can use [numpy](https://numpy.org/) to save any 2D matrix to .npy file to run our inference. 
+
+### Inference
+```
+python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 6 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu] --embed_depth [embed_depth]
+```
+- input_file: a .hic/.cool/.pkl/.txt/.pairs/.npy file records Hi-C matrix.
+- infer_batch_size: batch size of the input during inference, recommended: 4 for small GPU.
+- hic_resolution: resolution of the input matrix, default: 5000/10000 (5kb or 10kb should work the best since pre-trained at 5kb).
+- input_submatrix_length: input submatrix row size.
+- input_submatrix_width: input submatrix column size. For input_submatrix_length, input_submatrix_width, please choose size based on your interested submatrix size. But both should be a multiply of 16.
+- stride: scanning stride for the input Hi-C matrix, default: 20. Please adjust it based on your interest.
+- scan_boundary: off-diagonal bound for the scanning, default: 0 (to save time). Please adjust it based on your interest region. The default only covers the input_submatrix_width*resolution off-diagonal region.
+- trained_model_path: load pre-trained model for inference. 
+- output_dir: output directory to save the results, default: hicfoundation_embedding.
+- gpu: which gpu to use, default: None (will use all GPU). You can specify --gpu="0" to only use GPU 0, you can also specify --gpu="0,1" to use GPU0 and GPU1.
+- embed_depth: Specified the embedding to use for your purpose, default: 0 (encoder output embeddings). You can also specify ``k`` from 1 to 8 to indicate the output of k-th layer of decoder.
+<br>
+The output is saved in the ``output_dir``, where the embeddings are saved in the HiCFoundation_embedding.pkl.  <br>
+It is a dict format that includes four keys that correspond to four level of embeddings:
+- "patch_embedding": corresponds to patch-level embeddings. Here it keeps a dict with "chrom:pos1,pos2" as the key, and the HiCFoundation embedding as the value.  "chrom:pos1,pos2" indicates the center of corresponding patch at ``chrom``, with row at ``pos1``, and col at ``pos2``.
+- "submat_embedding": corresponds to the submatrix-level embedding. The submatrix size is defined by the input param ``input_row_size`` and ``input_col_size``. Here it keeps a dict with "chrom:pos1,pos2" as the key, and the HiCFoundation embedding as the value.  "chrom:pos1,pos2" indicates the center of corresponding patch at ``chrom``, with row at ``pos1``, and col at ``pos2``.
+- "chromo_embedding":  corresponds to the chromosome-level embedding. Here it keeps a dict with "chrom" as the key, and the HiCFoundation embedding of the correpsonding "chrom" as the value.
+- "genome_embedding": corresponds to the genome-level embedding of the input Hi-C. Here it keeps an embedding vector as the value of "genome_embedding".
+
+#### Example command
+```
+python3 inference.py --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolution 10000 --task 6 --input_row_size 160 --input_col_size 400 --stride 80 --bound 200 --model_path hicfoundation_model/hicfoundation_pretrain.pth.tar --output hicfoundation_inference/hicfoundation_embedding/ --gpu "0" --embed_depth 1
 ```
 
-```
+
+</details>

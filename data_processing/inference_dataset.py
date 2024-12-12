@@ -108,8 +108,8 @@ class Inference_Dataset(torch.utils.data.Dataset):
                     col_max_bound = min(col_size,middle_col_point+half_window_width)
                     
                     self.input_index.append([chrom,i,col_start,row_max_bound,col_max_bound,middle_col_point])
-            else:
-
+            elif self.task!=6:
+                #all inference tasks
                 for i in range(0,row_size-self.window_height,stride):
                     for j in range(0,col_size-self.window_width,stride):
                         
@@ -129,6 +129,21 @@ class Inference_Dataset(torch.utils.data.Dataset):
                         col_max_bound = min(j+self.window_width,col_size)
                         middle_col_point = (j+col_max_bound)//2
                         self.input_index.append((chrom,i,j,row_max_bound,col_max_bound,middle_col_point))
+            else:
+                #only for the embedding infer task
+                half_window_height = self.window_height//2
+                half_window_width = self.window_width//2
+                for i in range(0,row_size,stride):
+                    for j in range(0,col_size,stride):
+                        cur_row = max(0,i-half_window_height)
+                        cur_row_end = min(row_size,i+half_window_height)
+                        cur_col = max(0,j-half_window_width)
+                        cur_col_end = min(col_size,j+half_window_width)
+                        middle_col_point = (cur_col+cur_col_end)//2
+                        self.input_index.append([chrom,i,j,cur_row_end,
+                                                 cur_col_end,middle_col_point])
+                
+
         self.data = new_data
         print("Total reads of input hic: ",self.total_count)
         print("Total number of input windows: ",len(self.input_index))
@@ -147,10 +162,14 @@ class Inference_Dataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         current_index = self.input_index[idx]
         chrom,row_start,col_start,row_end,col_end,col_middle_point = current_index
+        row_record_start = row_start
+        col_record_start = col_start #this is specifically kept for embedding infer, which returns the center loc as final location for recording.
+        current_array = self.data[chrom]
 
         submat = np.zeros([1,self.window_height,self.window_width])
-
-        current_array = self.data[chrom]
+        if self.task==6:
+            row_start = max(0,row_record_start-self.window_height//2)
+            col_start = max(0,col_record_start-self.window_width//2)
         #it is a scipy sparse coo matrix
         select_index1 = (current_array.row>=row_start) & (current_array.row<row_end)
         select_index2 = (current_array.col>=col_start) & (current_array.col<col_end)
@@ -186,4 +205,4 @@ class Inference_Dataset(torch.utils.data.Dataset):
         input = self.convert_rgb(input,max_value)
         if self.transform is not None:
             input = self.transform(input)
-        return input,self.total_count,[chrom,row_start,col_start]
+        return input,self.total_count,[chrom,row_record_start,col_record_start]
