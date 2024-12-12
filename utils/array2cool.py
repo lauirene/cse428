@@ -31,7 +31,7 @@ def array2cool(input_array_pickle,output_cool,resolution,refer_genome_name,mode)
     #load array
     with open(input_array_pickle, 'rb') as f:
         data = pickle.load(f)
-    output_dir = os.path.dirname(output_hic)
+    output_dir = os.path.dirname(output_cool)
     os.makedirs(output_dir, exist_ok=True)
 
     #set each chromosome's length

@@ -334,3 +334,11 @@ The output Hi-C embedding is saved in ``hicfoundation_inference/hicfoundation_em
 It our level of embeddings: patch level embdding, submatrix level embedding, chromosome level embedding, and genome wide embedding. See more details above.
 
 </details>
+
+## Fine-tuning HiCFoundation for new tasks
+<details>
+<summary>Fine-tuning of pre-trained HiCFoundation model to new downstream tasks that you are interested with your own data.</summary>
+
+
+
+</details>
