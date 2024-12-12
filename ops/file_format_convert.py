@@ -148,3 +148,4 @@ def pkl2others(input_pkl, output_file,config_resolution,genome_id):
         print("Unsupported file format ",output_file)
         output_file=input_pkl
     print("Final output is saved in ",output_file)
+    return output_file

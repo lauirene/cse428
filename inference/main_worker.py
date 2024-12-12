@@ -172,6 +172,8 @@ def main_worker(args, input_pkl):
     if args.task==1:
         output_path = os.path.join(output_dir,"HiCFoundation_reproducibility_embedding.pkl")
         write_pickle(return_dict,output_path)
+        print("Reproducibility analysis finished!")
+        print("The embedding results are saved to ",output_path)
     elif args.task==2:
         #0.9 is used for benchmark, but please choose the threshold based on your own data
 
@@ -179,6 +181,8 @@ def main_worker(args, input_pkl):
         for threshold in threshold_list:
             output_bedpe = os.path.join(output_dir,"HiCFoundation_loop_{}.bedpe".format(threshold))
             generate_loop(return_dict,threshold,output_bedpe,resolution)
+        print("Loop calling finished!")
+        print("The loop calling results are saved to ",output_dir," with different thresholds in .bedpe format.")
     elif args.task==3:
         #convert to hic format as final output
         output_pkl = os.path.join(output_dir,"HiCFoundation_enhanced.pkl")
@@ -193,6 +197,11 @@ def main_worker(args, input_pkl):
         extention_name = input_file.split('.')[-1]
         output_file = os.path.join(output_dir,"HiCFoundation_enhanced."+extention_name)
         pkl2others(output_pkl, output_file,resolution,args.genome_id)
+        if not os.path.exists(output_file):
+            print("Error: file conversion failed.")
+            print("Resolution enhancement finished!")
+            print("The final output is saved in .pkl format, please convert it to other formats manually.")
+            print("The .pkl file is saved to ",output_pkl)
     elif args.task==4:
         #epigenomic assay prediction
         output_path = os.path.join(output_dir,"HiCFoundation_epigenomic_assay_prediction.pkl")
@@ -211,7 +220,8 @@ def main_worker(args, input_pkl):
             write_pickle(current_dict,current_pkl)
             output_bigwig = os.path.join(output_dir,"HiCFoundation_pred_%s.bigWig"%key_word)
             array2bigwig(current_pkl,output_bigwig,resolution=resolution)
-    
+        print("Epigenomic assay prediction finished!")
+        print("The prediction results are saved to ",output_dir," in .pkl and .bigWig format.")
 
     elif args.task==5:
         #scHi-C enhancement
@@ -221,11 +231,17 @@ def main_worker(args, input_pkl):
         extention_name = input_file.split('.')[-1]
         output_file = os.path.join(output_dir,"HiCFoundation_sc_enhanced."+extention_name)
         pkl2others(output_path, output_file,resolution,args.genome_id)
+        if not os.path.exists(output_file):
+            print("Error: file conversion failed.")
+            print("scHi-C enhancement finished!")
+            print("The final output is saved in .pkl format, please convert it to other formats manually.")
+            print("The .pkl file is saved to ",output_path)
     elif args.task==6:  
         #embedding generation
         output_path = os.path.join(output_dir,"HiCFoundation_embedding.pkl")
         write_pickle(return_dict,output_path)
+        print("Hi-C embedding generation finished!")
+        print("The embedding results are saved to ",output_path," in .pkl format.")
 
 
-    print("Inference finished!")
     print("Enjoy your HiCFoundation results!")
