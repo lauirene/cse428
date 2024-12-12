@@ -165,7 +165,7 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
                         
                 search_key = f"{chr}:{refer_row*config_resolution},{refer_col*config_resolution}"
                 #average embedding
-                all_embedding = cur_output.reshape(shape=(-1,cur_output.shape[-1]))
+                all_embedding = cur_output.reshape(-1,cur_output.shape[-1])
                 all_embedding = np.mean(all_embedding,axis=0)
                 output_dict["submat_embedding"][search_key].append(all_embedding)
 
