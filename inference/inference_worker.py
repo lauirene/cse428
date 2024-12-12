@@ -53,8 +53,7 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
     if infer_task==5:
         #scHi-C enhancement
         cutoff= 1000
-        cutoff = torch.tensor(cutoff).float().cuda()
-        log_cutoff = torch.log10(cutoff+1).cuda()
+        log_cutoff = np.log10(cutoff+1)
         output_dict={}
         for chrom in dataset_shape_dict:
             current_shape = dataset_shape_dict[chrom]
@@ -172,7 +171,6 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
 
             elif infer_task == 5:
                 #scHi-C enhancement
-                print(current_shape)
                 if current_shape[0] < args.input_row_size or current_shape[1] < args.input_col_size:
                     #remove padding regions
                     left_up_pad_size = (args.input_row_size - current_shape[0]) // 2
@@ -238,13 +236,14 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             count_array=output_dict[chrom]['count']
             mean_array=output_dict[chrom]['mean']
             count_array =np.maximum(count_array,1)
+            mean_array = (mean_array + mean_array.T)/2
             mean_array = mean_array/count_array
             mean_array = np.nan_to_num(mean_array)
             mean_array = mean_array*log_cutoff
             mean_array = np.power(10, mean_array) - 1
             mean_array = np.round(mean_array) - 2
-            mean_array = np.clip(0, np.max(mean_array))
-            return_dict[chrom] = mean_array
+            mean_array = np.clip(mean_array, 0, np.max(mean_array))
+            return_dict[chrom] = np.triu(mean_array)
         return return_dict
 
     elif infer_task==6:
