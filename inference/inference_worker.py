@@ -70,14 +70,23 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
         elif infer_task==2:
             #loop calling
             output= torch.sigmoid(output)
-        elif infer_task==3 or infer_task==5:
-            #resolution enhancement and scHi-C enhancement
+        elif infer_task==3:
+            #resolution enhancement
             output = output*log_cutoff
             output = torch.pow(10,output)-1
             output = torch.clamp(output,min=0)
+
         elif infer_task==6:
             #get the specified encoder/decoder layer's output
             output = output[args.embed_depth]
+
+
+        elif infer_task==5:
+            #scHi-C enhancement
+            output = output*log_cutoff
+            output = torch.pow(10,output)-1
+            output = torch.round(output)-2
+            output = torch.clamp(output,min=0)
 
         output = output.detach().cpu().numpy()
         input = input.detach().cpu().numpy()
@@ -109,8 +118,8 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
             if infer_task==1:
                 match_key = f"{chr}:{row_start*config_resolution},{col_start*config_resolution}"
                 output_dict[match_key] = cur_output
-            elif infer_task==2 or infer_task==3 or infer_task==5:
-                #loop calling, resolution enhancement, scHi-C enhancement
+            elif infer_task==2 or infer_task==3:
+                #loop calling, resolution enhancement
                 cur_output = cur_output[:row_end-row_start,:col_end-col_start]
                 cur_output = array_to_coo(cur_output)
                 output_dict[chr]["row_record"].append(cur_output.row+row_start)
@@ -122,7 +131,8 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
                 cur_output = cur_output[:, :row_end-row_start]
                 output_dict[chr]['mean'][:, row_start:row_end] += cur_output
                 output_dict[chr]['count'][:, row_start:row_end] += 1
-            elif infer_task==5:
+
+            elif infer_task==6:
                 refer_row = row_start
                 refer_col = col_start
                 real_row_start = max(0,refer_row-args.input_row_size//2)
@@ -152,6 +162,22 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
                 output_dict["submat_embedding"][search_key].append(all_embedding)
 
 
+            elif infer_task == 5:
+                #scHi-C enhancement
+                if current_shape[0] < args.input_row_size or current_shape[1] < args.input_col_size:
+                    #remove padding regions
+                    left_up_pad_size = (args.input_row_size - current_shape[0]) // 2
+                    right_down_pad_size = args.input_row_size - current_shape[0] - left_up_pad_size
+                    left_up_pad_size_col = (args.input_col_size - current_shape[1]) // 2
+                    right_down_pad_size_col = args.input_col_size - current_shape[1] - left_up_pad_size_col
+                    cur_output = cur_output[left_up_pad_size:-right_down_pad_size, left_up_pad_size_col:-right_down_pad_size_col]
+                else:
+                    cur_output = cur_output[row_start:row_start+args.input_row_size, col_start:col_start+args.input_col_size]
+                cur_output = array_to_coo(cur_output)
+                output_dict[chr]["row_record"].append(cur_output.row+row_start)
+                output_dict[chr]["col_record"].append(cur_output.col+col_start)
+                output_dict[chr]["value_record"].append(cur_output.data)
+                output_dict[chr]["count_record"].append([1]*len(cur_output.data))
 
     
     if infer_task==1:

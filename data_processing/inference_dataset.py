@@ -6,7 +6,7 @@ import random
 from collections import defaultdict
 from scipy.sparse import coo_matrix
 import pickle 
-
+from ops.sparse_ops import array_to_coo
 
 class Inference_Dataset(torch.utils.data.Dataset):
     def __init__(self,data_path,   
@@ -81,7 +81,7 @@ class Inference_Dataset(torch.utils.data.Dataset):
                     left_up_pad_size = (self.window_height - row_size) // 2
                     right_down_pad_size = self.window_height - row_size - right_down_pad_size
                     final_array = np.pad(current_array,((left_up_pad_size ,right_down_pad_size),(left_up_pad_size ,right_down_pad_size)),'constant',constant_values=(0,0))
-                    final_hic_data_padded = coo_matrix(final_array)
+                    final_hic_data_padded = array_to_coo(final_array)
                     new_data[chrom] = final_hic_data_padded # update the data
                     row_size = final_hic_data_padded.shape[0] # update the row size
                     col_size = final_hic_data_padded.shape[1] # update the col size
