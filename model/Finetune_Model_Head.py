@@ -72,6 +72,9 @@ class Finetune_Model_Head(nn.Module):
         if self.task==4:
             decoder_pos_embed =get_2d_sincos_pos_embed_rectangle(self.decoder_pos_embed_new.shape[2], self.pos_embed_size, False)
             self.decoder_pos_embed_new.data.copy_(torch.from_numpy(decoder_pos_embed).float().unsqueeze(0))
+        elif self.task==6:
+            decoder_pos_embed =get_2d_sincos_pos_embed_rectangle(self.decoder_pos_embed.shape[2], self.pos_embed_size, False)
+            self.decoder_pos_embed.data.copy_(torch.from_numpy(decoder_pos_embed).float().unsqueeze(0))
         else:
             decoder_pos_embed = get_2d_sincos_pos_embed(self.decoder_pos_embed.shape[-1], int(self.patch_embed.num_patches**.5), cls_token=False)
             self.decoder_pos_embed.data.copy_(torch.from_numpy(decoder_pos_embed).float().unsqueeze(0))
