@@ -270,29 +270,18 @@ The output enhanced Hi-C is saved in ``hicfoundation_inference/epigenomic_profil
 #### 5. Inference for single-cell HiC resolution enhancement
 
 ```
-
 python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 5 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu]
-
 ```
 
 - input_file: a .hic/.cool/.pkl/.txt/.pairs/.npy file records Hi-C matrix.
-
 - infer_batch_size: batch size of the input during inference, recommended: 4 for small GPU.
-
 - hic_resolution: resolution of the input matrix, recommended: 1,000,000 (1 MB for single-cell HiC resolution enhancement).
-
 - input_submatrix_length: input submatrix row size, default: 224 (covers 224 MB region to predict 224 MB region).
-
 - input_submatrix_width: input submatrix column size, default: 224 (covers 224 MB region to predict 224 MB region).
-
 - stride: scanning stride for the input Hi-C matrix, default: 20.
-
 - scan_boundary: off-diagonal bound for the scanning, recommended: 250..
-
 - trained_model_path: load fine-tuned model for inference. Here the model should be [hicfoundation_sc.pth.tar](hicfoundation_model/hicfoundation_sc.pth.tar). Make sure you follow the installment instructions to download it before you run.
-
 - output_dir: output directory to save the results, default: hicfoundation_inference.
-
 - gpu: which gpu to use, default: None (will use all GPU). You can specify --gpu="0" to only use GPU 0, you can also specify --gpu="0,1" to use GPU0 and GPU1.
 
 <br>
@@ -302,9 +291,7 @@ The output is saved in the ``output_dir``, where the enhanced single-cell HiC ma
 ##### Example command:
 
 ```
-
 python3 inference.py --input example/GSM7006609_ValbB8w1081.pairs --batch_size 4 --resolution 1000000 --task 5 --input_row_size 224 --input_col_size 224 --stride 20 --bound 250 --model_path hicfoundation_model/hicfoundation_sc.pth.tar --output hicfoundation_inference/sc_hic_enhancement --gpu "0"
-
 ```
 
 This uses the given  example ``GSM7006609_ValbB8w1081.pairs`` to run the inference. <br>
