@@ -150,8 +150,8 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
                 patch_col_range = (real_col_end-real_col_start)//args.patch_size
                 cur_output = cur_output[:patch_row_range,:patch_col_range]
                 
-                for row_index in range(real_row_start,real_row_end):
-                    for col_index in range(real_col_start,real_col_end):
+                for row_index in range(real_row_start,real_row_end, args.patch_size):
+                    for col_index in range(real_col_start,real_col_end,args.patch_size):
                         row_index = int(row_index)
                         col_index = int(col_index)
                         patch_row_index = (row_index-real_row_start)//args.patch_size
