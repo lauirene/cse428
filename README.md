@@ -327,8 +327,10 @@ It is a dict format that includes four keys that correspond to four level of emb
 
 #### Example command
 ```
-python3 inference.py --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolution 10000 --task 6 --input_row_size 160 --input_col_size 400 --stride 80 --bound 200 --model_path hicfoundation_model/hicfoundation_pretrain.pth.tar --output hicfoundation_inference/hicfoundation_embedding/ --gpu "0" --embed_depth 1
+python3 inference.py --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolution 10000 --task 6 --input_row_size 400 --input_col_size 400 --stride 80 --bound 200 --model_path hicfoundation_model/hicfoundation_pretrain.pth.tar --output hicfoundation_inference/hicfoundation_embedding/ --gpu "0" --embed_depth 0
 ```
-
+This uses the example ``4DNFITUOMFUQ.hic`` to run the inference with the submatrix size of 400*400 of 6Mb off-diagonal regions. <br>
+The output Hi-C embedding is saved in ``hicfoundation_inference/hicfoundation_embedding/HiCFoundation_embedding.pkl`` in a dict format.  <br>
+It our level of embeddings: patch level embdding, submatrix level embedding, chromosome level embedding, and genome wide embedding. See more details above.
 
 </details>
