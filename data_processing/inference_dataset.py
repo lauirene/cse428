@@ -74,12 +74,11 @@ class Inference_Dataset(torch.utils.data.Dataset):
             self.dataset_shape[chrom] = final_hic_data.shape
             row_size = final_hic_data.shape[0]
             col_size = final_hic_data.shape[1]
-
             if self.task == 5: # schic enhancement, for padding around the center matrix
                 current_array = final_hic_data.toarray()
                 if row_size < self.window_height or col_size < self.window_width: # do padding
                     left_up_pad_size = (self.window_height - row_size) // 2
-                    right_down_pad_size = self.window_height - row_size - right_down_pad_size
+                    right_down_pad_size = self.window_height - row_size - left_up_pad_size
                     final_array = np.pad(current_array,((left_up_pad_size ,right_down_pad_size),(left_up_pad_size ,right_down_pad_size)),'constant',constant_values=(0,0))
                     final_hic_data_padded = array_to_coo(final_array)
                     new_data[chrom] = final_hic_data_padded # update the data
