@@ -160,7 +160,7 @@ python3 inference.py --input [input_file] --batch_size [infer_batch_size] --reso
 - input_submatrix_width: input submatrix column size, default: 224.
 - stride: scanning stride for the input Hi-C matrix, default: 20.
 - scan_boundary: off-diagonal bound for the scanning, default: 0.
-- trained_model_path: load fine-tuned model for inference.
+- trained_model_path: load fine-tuned model for inference. Here the model should be [hicfoundation_reproducibility.pth.tar](hicfoundation_model/hicfoundation_reproducibility.pth.tar). Make sure you follow the installment instructions to download it before you run.
 - output_dir: output directory to save the results, default: hicfoundation_inference.
 - gpu: which gpu to use, default: None (will use all GPU). You can specify --gpu="0" to only use GPU 0, you can also specify --gpu="0,1" to use GPU0 and GPU1.
 <br>
@@ -186,7 +186,7 @@ python3 inference.py --input [input_file] --batch_size [infer_batch_size] --reso
 - input_submatrix_width: input submatrix column size, default: 224.
 - stride: scanning stride for the input Hi-C matrix, default: 20.
 - scan_boundary: off-diagonal bound for the scanning, default: 0 (to save time). You can also use 200, the detection results should be similar.
-- trained_model_path: load fine-tuned model for inference. Use "hicfoundation_loop.pth.tar" for high-coverage loop detection and "hicfoundation_loop_lc.pth.tar" for low-coverage loop detection. For human dataset, total reads smaller than 50M is treated as low-coverage, that equals to any experiments with less than around 200 reads per 10 kb.
+- trained_model_path: load fine-tuned model for inference. Use "hicfoundation_loop.pth.tar" for high-coverage loop detection and "hicfoundation_loop_lc.pth.tar" for low-coverage loop detection. For human dataset, total reads smaller than 50M is treated as low-coverage, that equals to any experiments with less than around 200 reads per 10 kb. Here the model should be [hicfoundation_loop.pth.tar](hicfoundation_model/hicfoundation_loop.pth.tar) or [hicfoundation_loop_lc.pth.tar](hicfoundation_model/hicfoundation_loop_lc.pth.tar). Make sure you follow the installment instructions to download models before you run.
 - output_dir: output directory to save the results, default: hicfoundation_inference.
 - gpu: which gpu to use, default: None (will use all GPU). You can specify --gpu="0" to only use GPU 0, you can also specify --gpu="0,1" to use GPU0 and GPU1.
 <br>
@@ -222,7 +222,7 @@ python3 inference.py --input [input_file] --batch_size [infer_batch_size] --reso
 - input_submatrix_width: input submatrix column size, default: 224.
 - stride: scanning stride for the input Hi-C matrix, default: 20.
 - scan_boundary: off-diagonal bound for the scanning, default: 0 (to save time).
-- trained_model_path: load fine-tuned model for inference. 
+- trained_model_path: load fine-tuned model for inference.  Here the model should be [hicfoundation_resolution.pth.tar](hicfoundation_model/hicfoundation_resolution.pth.tar). Make sure you follow the installment instructions to download it before you run.
 - output_dir: output directory to save the results, default: hicfoundation_inference.
 - gpu: which gpu to use, default: None (will use all GPU). You can specify --gpu="0" to only use GPU 0, you can also specify --gpu="0,1" to use GPU0 and GPU1.
 - genome_id: genome id for generating .hic file. Must be one of hg18, hg19, hg38, dMel, mm9, mm10, anasPlat1, bTaurus3, canFam3, equCab2, galGal4, Pf3D7, sacCer3, sCerS288c, susScr3, or TAIR10; alternatively, this can be the path of the chrom.sizes file that lists on each line the name and size of the chromosomes.
@@ -250,7 +250,7 @@ python3 inference.py --input [input_file] --batch_size [infer_batch_size] --reso
 - input_submatrix_width: input submatrix column size, default: 4000 (covers full off-diagonal 2 Mb region for more accurate prediction).
 - stride: scanning stride for the input Hi-C matrix, default: 32 (64 should yield similar results but should be much faster).
 - scan_boundary: off-diagonal bound for the scanning, default: 0 (to save time).
-- trained_model_path: load fine-tuned model for inference. 
+- trained_model_path: load fine-tuned model for inference. Here the model should be [hicfoundation_epigenmoic.pth.tar](hicfoundation_model/hicfoundation_epigenomic.pth.tar). Make sure you follow the installment instructions to download it before you run.
 - output_dir: output directory to save the results, default: hicfoundation_inference.
 - gpu: which gpu to use, default: None (will use all GPU). You can specify --gpu="0" to only use GPU 0, you can also specify --gpu="0,1" to use GPU0 and GPU1.
 <br>
@@ -313,7 +313,7 @@ python3 inference.py --input [input_file] --batch_size [infer_batch_size] --reso
 - input_submatrix_width: input submatrix column size. For input_submatrix_length, input_submatrix_width, please choose size based on your interested submatrix size. But both should be a multiply of 16.
 - stride: scanning stride for the input Hi-C matrix, default: 20. Please adjust it based on your interest.
 - scan_boundary: off-diagonal bound for the scanning, default: 0 (to save time). Please adjust it based on your interest region. The default only covers the input_submatrix_width*resolution off-diagonal region.
-- trained_model_path: load pre-trained model for inference. 
+- trained_model_path: load pre-trained model for inference. Here the model should be [hicfoundation_pretrain.pth.tar](hicfoundation_model/hicfoundation_pretrain.pth.tar). Make sure you follow the installment instructions to download it before you run.
 - output_dir: output directory to save the results, default: hicfoundation_embedding.
 - gpu: which gpu to use, default: None (will use all GPU). You can specify --gpu="0" to only use GPU 0, you can also specify --gpu="0,1" to use GPU0 and GPU1.
 - embed_depth: Specified the embedding to use for your purpose, default: 0 (encoder output embeddings). You can also specify ``k`` from 1 to 8 to indicate the output of k-th layer of decoder.
