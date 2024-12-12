@@ -183,11 +183,13 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
                     output_dict[chr]['count'] += 1
                 else:
                     cur_output = cur_output[row_start:row_start+args.input_row_size, col_start:col_start+args.input_col_size]
-                cur_output = array_to_coo(cur_output)
-                output_dict[chr]["row_record"].append(cur_output.row+row_start)
-                output_dict[chr]["col_record"].append(cur_output.col+col_start)
-                output_dict[chr]["value_record"].append(cur_output.data)
-                output_dict[chr]["count_record"].append([1]*len(cur_output.data))
+                    output_dict[chr]['mean'][row_start:row_start+args.input_row_size, col_start:col_start+args.input_col_size] += cur_output
+                    output_dict[chr]['count'][row_start:row_start+args.input_row_size, col_start:col_start+args.input_col_size] += 1
+                # cur_output = array_to_coo(cur_output)
+                # output_dict[chr]["row_record"].append(cur_output.row+row_start)
+                # output_dict[chr]["col_record"].append(cur_output.col+col_start)
+                # output_dict[chr]["value_record"].append(cur_output.data)
+                # output_dict[chr]["count_record"].append([1]*len(cur_output.data))
 
 
     
