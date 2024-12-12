@@ -34,6 +34,9 @@ def configure_dataset(args,input_pkl):
     elif args.task==2:
         #loop calling
         max_cutoff = 1000
+    elif args.task==5:
+        #scHi-C enhancement
+        max_cutoff = 100
     else:
         max_cutoff = None
     
