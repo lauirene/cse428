@@ -13,6 +13,7 @@ dependencies:
   - pytorch=1.8.1
   - torchvision=0.9.1
   - timm=0.3.2
+  - openjdk
   - pip:
       - easydict
       - opencv-python
@@ -28,5 +29,7 @@ dependencies:
       - einops
       - tensorboard
       - cooler
+      - numba
+      - pyBigWig
 
 
