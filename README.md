@@ -99,13 +99,13 @@ HiCFoundation model weights: [hicfoundation_model](https://huggingface.co/wang37
 You can also run the following command line to do this
 ```commandline
 cd hicfoundation_model
-wget https://huggingface.co/wang3702/hicfoundation_models/blob/main/hicfoundation_pretrain.pth.tar
-wget https://huggingface.co/wang3702/hicfoundation_models/blob/main/hicfoundation_reproducibility.pth.tar
-wget https://huggingface.co/wang3702/hicfoundation_models/blob/main/hicfoundation_loop.pth.tar
-wget https://huggingface.co/wang3702/hicfoundation_models/blob/main/hicfoundation_loop_lc.pth.tar
-wget https://huggingface.co/wang3702/hicfoundation_models/blob/main/hicfoundation_resolution.pth.tar
-wget https://huggingface.co/wang3702/hicfoundation_models/blob/main/hicfoundation_epigenomic.pth.tar
-wget https://huggingface.co/wang3702/hicfoundation_models/blob/main/hicfoundation_schic.pth.tar
+wget https://huggingface.co/wang3702/hicfoundation_models/resolve/main/hicfoundation_pretrain.pth.tar
+wget https://huggingface.co/wang3702/hicfoundation_models/resolve/main/hicfoundation_reproducibility.pth.tar
+wget https://huggingface.co/wang3702/hicfoundation_models/resolve/main/hicfoundation_loop.pth.tar
+wget https://huggingface.co/wang3702/hicfoundation_models/resolve/main/hicfoundation_loop_lc.pth.tar
+wget https://huggingface.co/wang3702/hicfoundation_models/resolve/main/hicfoundation_resolution.pth.tar
+wget https://huggingface.co/wang3702/hicfoundation_models/resolve/main/hicfoundation_epigenomic.pth.tar
+wget https://huggingface.co/wang3702/hicfoundation_models/resolve/main/hicfoundation_schic.pth.tar
 cd ..
 ```
 
