@@ -77,7 +77,7 @@ def hic2array(input_hic,output_pkl=None,
             chrom1_name = chrom_list[i].name
             chrom2 = chrom_list[j]
             chrom2_name = chrom_list[j].name
-            if 'Un' in chrom1 or 'Un' in chrom2:
+            if 'Un' in chrom1_name or 'Un' in chrom2_name:
                 continue
             if "random" in chrom1_name.lower() or "random" in chrom2_name.lower():
                 continue
