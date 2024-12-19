@@ -40,9 +40,9 @@ def configure_data_loader(args):
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
     data_dir=os.path.abspath(args.data_path)
-    train_config= os.path.abspath(args.train_info)
+    train_config= os.path.abspath(args.train_config)
     train_list = parse_text(train_config, data_dir)
-    val_config= os.path.abspath(args.valid_info)
+    val_config= os.path.abspath(args.valid_config)
     val_list = parse_text(val_config, data_dir)
     input_row_size = args.input_row_size
     input_col_size = args.input_col_size
