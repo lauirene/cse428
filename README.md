@@ -156,7 +156,10 @@ Please download the following files to the example folder for example testing pu
 ### Inference for different tasks
 #### 1. Inference embeddings for reproducibility analysis
 ```
-python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 1 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu]
+python3 inference.py --input [input_file] --batch_size [infer_batch_size] \
+  --resolution [hic_resolution] --task 1 --input_row_size [input_submatrix_length] \
+  --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] \
+  --model_path [trained_model_path] --output [output_dir] --gpu [gpu]
 ```
 - input_file: a .hic/.cool/.pkl/.txt/.pairs/.npy file records Hi-C matrix.
 - infer_batch_size: batch size of the input during inference, recommended: 4 for small GPU.
@@ -175,14 +178,20 @@ This embedding corresponds to the submatrix of [row_index:row_index+input_row_si
 
 ##### Example command:
 ```
-python3 inference.py --input example/ENCFF689CUX.hic --batch_size 4 --resolution 25000 --task 1 --input_row_size 224 --input_col_size 224 --stride 20 --bound 0 --model_path hicfoundation_model/hicfoundation_reproducibility.pth.tar --output hicfoundation_inference/reproducibility_analysis/ --gpu "0"
+python3 inference.py --input example/ENCFF689CUX.hic --batch_size 4 --resolution 25000 \
+  --task 1 --input_row_size 224 --input_col_size 224 --stride 20 --bound 0 \
+  --model_path hicfoundation_model/hicfoundation_reproducibility.pth.tar \
+  --output hicfoundation_inference/reproducibility_analysis/ --gpu "0"
 ```
 This uses the low-coverage example ``ENCFF689CUX.hic`` to run the inference. <br>
 The output embedding is saved in ``hicfoundation_inference/reproducibility_analysis/HiCFoundation_reproducibility_embedding.pkl``.
 
 #### 2. Inference for chromatin loop detection
 ```
-python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 2 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu]
+python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] \
+  --task 2 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] \
+  --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] \
+  --output [output_dir] --gpu [gpu]
 ```
 - input_file: a .hic/.cool/.pkl/.txt/.pairs/.npy file records Hi-C matrix.
 - infer_batch_size: batch size of the input during inference, recommended: 4 for small GPU.
@@ -201,7 +210,10 @@ Each line records a loop calls in the .bedpe file in format of [chr1 x1 x2 chr2 
 ##### Example command:
 Loop calls from high-coverage Hi-C
 ```
-python3 inference.py --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolution 10000 --task 2 --input_row_size 224 --input_col_size 224 --stride 20 --bound 0 --model_path hicfoundation_model/hicfoundation_loop.pth.tar --output hicfoundation_inference/loop_detection/ --gpu "0"
+python3 inference.py --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolution 10000 \
+  --task 2 --input_row_size 224 --input_col_size 224 --stride 20 --bound 0 \
+  --model_path hicfoundation_model/hicfoundation_loop.pth.tar \
+  --output hicfoundation_inference/loop_detection/ --gpu "0"
 ```
 This uses the high-coverage example ``4DNFITUOMFUQ.hic`` to run the inference. <br>
 The output loop detection is saved in ``hicfoundation_inference/loop_detection``. <br>
@@ -218,7 +230,10 @@ You can also check other more confident loop calls under ``hicfoundation_inferen
 
 #### 3. Inference for resolution enhancement
 ```
-python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 3 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu] --genome_id [genome_id]
+python3 inference.py --input [input_file] --batch_size [infer_batch_size] \
+  --resolution [hic_resolution] --task 3 --input_row_size [input_submatrix_length] \
+  --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] \
+  --model_path [trained_model_path] --output [output_dir] --gpu [gpu] --genome_id [genome_id]
 ```
 - input_file: a .hic/.cool/.pkl/.txt/.pairs/.npy file records Hi-C matrix.
 - infer_batch_size: batch size of the input during inference, recommended: 4 for small GPU.
@@ -238,14 +253,20 @@ You can also use [array2hic.py](utils/array2hic.py) and [array2cool.py](utils/ar
 
 ##### Example command:
 ```
-python3 inference.py --input example/ENCFF689CUX.hic --batch_size 4 --resolution 10000 --task 3 --input_row_size 224 --input_col_size 224 --stride 20 --bound 0 --model_path hicfoundation_model/hicfoundation_resolution.pth.tar --output hicfoundation_inference/resolution_enhancement/ --gpu "0" --genome_id hg38
+python3 inference.py --input example/ENCFF689CUX.hic --batch_size 4 --resolution 10000 \
+  --task 3 --input_row_size 224 --input_col_size 224 --stride 20 --bound 0 \
+  --model_path hicfoundation_model/hicfoundation_resolution.pth.tar \
+  --output hicfoundation_inference/resolution_enhancement/ --gpu "0" --genome_id hg38
 ```
 This uses the low-coverage example ``ENCFF689CUX.hic`` to run the inference. <br>
 The output enhanced Hi-C is saved in ``hicfoundation_inference/resolution_enhancement/HiCFoundation_enhanced.pkl`` and ``hicfoundation_inference/resolution_enhancement/HiCFoundation_enhanced.hic``.
 
 #### 4. Inference for epigenomic assays profiling
 ```
-python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 4 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu] 
+python3 inference.py --input [input_file] --batch_size [infer_batch_size] \
+  --resolution [hic_resolution] --task 4 --input_row_size [input_submatrix_length] \
+  --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] \
+  --model_path [trained_model_path] --output [output_dir] --gpu [gpu] 
 ```
 
 - input_file: a .hic/.cool/.pkl/.txt/.pairs/.npy file records Hi-C matrix.
@@ -267,7 +288,10 @@ You can also use [array2bigwig.py](utils/array2bigwig.py) to convert the .pkl to
 
 ##### Example command:
 ```
-python3 inference.py --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolution 1000 --task 4 --input_row_size 128 --input_col_size 4000 --stride 32 --bound 0 --model_path hicfoundation_model/hicfoundation_epigenomic.pth.tar --output hicfoundation_inference/epigenomic_profiling/ --gpu "0" 
+python3 inference.py --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolution 1000 \
+  --task 4 --input_row_size 128 --input_col_size 4000 --stride 32 --bound 0 \
+  --model_path hicfoundation_model/hicfoundation_epigenomic.pth.tar \
+  --output hicfoundation_inference/epigenomic_profiling/ --gpu "0" 
 ```
 This uses the high-coverage example ``4DNFITUOMFUQ.hic`` to run the inference. <br>
 The output enhanced Hi-C is saved in ``hicfoundation_inference/epigenomic_profiling/HiCFoundation_epigenomic_assay_prediction_[assay_name].pkl`` and ``hicfoundation_inference/epigenomic_profiling/HiCFoundation_pred_[assay_name].bigWig``. <br>
@@ -275,7 +299,10 @@ The output enhanced Hi-C is saved in ``hicfoundation_inference/epigenomic_profil
 #### 5. Inference for single-cell HiC resolution enhancement
 
 ```
-python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 5 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu]
+python3 inference.py --input [input_file] --batch_size [infer_batch_size] \
+  --resolution [hic_resolution] --task 5 --input_row_size [input_submatrix_length] \
+  --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] \
+  --model_path [trained_model_path] --output [output_dir] --gpu [gpu]
 ```
 
 - input_file: a .hic/.cool/.pkl/.txt/.pairs/.npy file records Hi-C matrix.
@@ -296,7 +323,10 @@ The output is saved in the ``output_dir``, where the enhanced single-cell HiC ma
 ##### Example command:
 
 ```
-python3 inference.py --input example/GSM7006609_ValbB8w1081.pairs --batch_size 4 --resolution 1000000 --task 5 --input_row_size 224 --input_col_size 224 --stride 20 --bound 250 --model_path hicfoundation_model/hicfoundation_schic.pth.tar --output hicfoundation_inference/sc_hic_enhancement --gpu "0"
+python3 inference.py --input example/GSM7006609_ValbB8w1081.pairs --batch_size 4 \
+  --resolution 1000000 --task 5 --input_row_size 224 --input_col_size 224 \
+  --stride 20 --bound 250 --model_path hicfoundation_model/hicfoundation_schic.pth.tar \
+  --output hicfoundation_inference/sc_hic_enhancement --gpu "0"
 ```
 
 This uses the given  example ``GSM7006609_ValbB8w1081.pairs`` to run the inference. <br>
@@ -339,7 +369,10 @@ Please download the following files to the example folder for example testing pu
 
 ### Inference
 ```
-python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] --task 6 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] --gpu [gpu] --embed_depth [embed_depth]
+python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] \
+  --task 6 --input_row_size [input_submatrix_length] --input_col_size [input_submatrix_width] \
+   --stride [stride] --bound [scan_boundary] --model_path [trained_model_path] --output [output_dir] \
+   --gpu [gpu] --embed_depth [embed_depth]
 ```
 - input_file: a .hic/.cool/.pkl/.txt/.pairs/.npy file records Hi-C matrix.
 - infer_batch_size: batch size of the input during inference, recommended: 4 for small GPU.
@@ -362,7 +395,10 @@ It is a dict format that includes four keys that correspond to four level of emb
 
 #### Example command
 ```
-python3 inference.py --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolution 10000 --task 6 --input_row_size 400 --input_col_size 400 --stride 80 --bound 200 --model_path hicfoundation_model/hicfoundation_pretrain.pth.tar --output hicfoundation_inference/hicfoundation_embedding/ --gpu "0" --embed_depth 0
+python3 inference.py --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolution 10000 \
+  --task 6 --input_row_size 400 --input_col_size 400 --stride 80 --bound 200 
+  --model_path hicfoundation_model/hicfoundation_pretrain.pth.tar \
+  --output hicfoundation_inference/hicfoundation_embedding/ --gpu "0" --embed_depth 0
 ```
 This uses the example ``4DNFITUOMFUQ.hic`` to run the inference with the submatrix size of 400*400 of 6Mb off-diagonal regions. <br>
 The output Hi-C embedding is saved in ``hicfoundation_inference/hicfoundation_embedding/HiCFoundation_embedding.pkl`` in a dict format.  <br>
