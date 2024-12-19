@@ -374,6 +374,94 @@ It our level of embeddings: patch level embdding, submatrix level embedding, chr
 <details>
 <summary>Fine-tuning of pre-trained HiCFoundation model to new downstream tasks that you are interested with your own data.</summary>
 
+To help adapt and fine-tune HiCFoundation model for other tasks of your interest, we also released the fine-tuning script and instructions here.
+
+### 1. Dataset prparation
+The dataset should be prepared in a directory [data_path] (keep in mind that you will use later), where the directory organization should be organized as
+```
+-[HiC-ID1]
+  --input1.pkl
+  --input2.pkl
+  ...
+-[HiC-ID2]
+  --input1.pkl
+  --input2.pkl
+  ...
+...
+```
+Under each sub-directory, each example is saved in .pkl file in dict format. <br>
+The dict is in the following format.
+```
+"input": the input Hi-C/scHi-C matrix in scipy.sparse or numpy.array format, shape: (M,N);
+"input_count": the total count of Hi-C expriment, should be a float scalar value;  (optional)
+"2d_target": the output Hi-C/scHi-C matrix in scipy.sparse or numpy.array format, shape: (M,N); (optional)
+"embed_target": the embedding 1D vector in numpy.array format, shape: (512);  (optional)
+"1d_target": the 1D target vector in numpy.array format, shape: (M); (optional)
+```
+The last three keys are optional, you can adjust it based on your fine-tuning purpose. But you must have at least one key for fine-tuning purposes. <br>
+The example .pkl can be accessed under [finetune_example](example/finetune_example/train/). <br>
+You can update the key and code to allow other keys based on your purposes.
+
+### 2. Congigure training examples
+To specify the experiment for training and validation, you should use [train_config] and [valid_config] to configure. <br>
+In each line of these files, you can put the [HiC-ID] to indicate the correponding directory should be used to in train or valid. <br>
+You can check the config example [train_config](example/finetune_example/train.txt) and [valid_config](example/finetune_example/val.txt).
+
+### 3. Finetune HiCFoundation for other tasks
+```
+python3 finetune.py --batch_size [batch_size] --accum_iter [grad_accumulation_steps] 
+    --epochs [epochs] --warmup_epochs [warmup_epochs] --pin_mem 
+    --blr [base_learning_rate] --min_lr [min_learning_rate] --weight_decay [weight_decay] 
+    --layer_decay [layer_decay] --model [model_name] --pretrain [pretrained_model] 
+    --resume [resume_model] --finetune [finetune_mode] --seed [random_seed] 
+    --loss_type [loss_type] --data_path [train_data_path] --train_config [train_config]
+    --valid_config [valid_config] --output [output_directory] --tensorboard [tensorboard] 
+    --world_size [world_size] --dist_url [dist_url] --input_row_size [input_row_size]
+    --input_col_size [input_col_size] --patch_size [patch_size] --print_freq [print_freq] 
+    --save_freq [save_freq]
+```
+- `batch_size`: batch size for fine-tuning.
+- `accum_iter`: gradient accumulation steps. The effective batch size is batch_size*accum_iter. <br>
+    If you have memory constraints, you can increase --accum_iter and reduce the --batch_size to trade off memory for computation. 
+- `epochs`: number of epochs for fine-tuning. Default: 50. 
+    The performance will increase with more epochs, but 50 should be enough to have very good performances.
+- `warmup_epochs`: number of warmup epochs for fine-tuning. Default: 5. The learning rate will increase linearly from 0 to the base learning rate in the warmup_epochs.
+- `pin_mem`: Pin CPU memory in DataLoader for more efficient (sometimes) transfer to GPU.
+- `blr`: base learning rate. The absolute learning rate is calculated as: absolute_lr = base_lr * total_batch_size / 256. Default: 1e-3.
+- `min_lr`: lower lr bound for learning rate decay during fine-tuning. Default: 0.
+- `weight_decay`: weight decay for fine-tuning. Default: 0.05.
+- `layer_decay`: layer-wise lr decay during fine-tuning. Default: 0.75. 
+- `model`: model name for fine-tuning. Default: 'vit_large_patch16_dynamicsize'.
+- `pretrain`: load pre-trained model for fine-tuning. Default: 'hicfoundation_model/hicfoundation_pretrain.pth.tar'.
+- `resume`: resume fine-tuning from a checkpoint. Default: ''. This is used to resume training and automatically load from the checkpoint.
+- `finetune`: fine-tune mode: 1: only fine-tune the model's encoder; 2: fine-tune the whole model.
+- `seed`: random seed for fine-tuning. It is used to make sure results are reproducible. Default: 888.
+- `loss_type`: loss type: 1: MSE loss; 2: Cosine loss. You can define your own loss function in finetune/loss.py. Default: 0.
+- `data_path`: a directory contains many sub-directory, each sub-dir includes many .pkl files for fine-tuning. 
+    The .pkl file should record a dict with following keys refer to different fine-tuning purposes:
+    - "input": the input Hi-C/scHi-C matrix in scipy.sparse or numpy.array format.
+    - "input_count": the total count of Hi-C expriment (optional).
+    - "2d_target": the output Hi-C/scHi-C matrix in scipy.sparse or numpy.array format.
+    - "embed_target": the embedding vector in numpy.array format.
+    - "1d_target": the 1D target vector in numpy.array format.
+    The last three keys are optional, you can adjust it based on your fine-tuning purpose. But you must have at least one target info for fine-tuning.
+- `train_config`: a .txt file records the training information for input directory. Each line should be the sub-dir name that will be used to train during fine-tuning.
+- `valid_config`: a .txt file records the validation information for input directory. Each line should be the sub-dir name that will be used to validate during fine-tuning.
+- `output`: output directory to save the results. The output directory will contain the fine-tuned model, log files, and tensorboard logs. Default: 'hicfoundation_finetune'.
+- `tensorboard`: enable tensorboard log for fine-tuning. Default: 0.
+- `world_size`: number of servers to use for fine-tuning iterations. Default: 1.
+- `dist_url`: url used to set up distributed training. Default: 'tcp://localhost:10001'.
+- `input_row_size`: input row size. Must be a multiple of patch_size. Default: 224.
+- `input_col_size`: input col size. Must be a multiple of patch_size. Default: 224.
+- `patch_size`: patch size for input token. Default: 16.
+- `print_freq`: print frequency. Default: 1.
+- `save_freq`: save frequency. Default: 1.
+<br>
+The output is saved in the ``hicfoundation_finetune``, where the model is saved under ``model`` subdir, the log info is saved under ``log`` subdir, and the tensorboard is saved in ``tensorboard``. <br>
+You can use ``tensorboard --logdir="tensorboard" --port 10000`` to track the fine-tuning status from the tensorboard monitor webpage from browser.
+
+#### Example command
+
 
 
 </details>

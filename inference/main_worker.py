@@ -135,7 +135,6 @@ def main_worker(args, input_pkl):
         # interpolate position embedding
         #this can apply to most scenarios but not our condition
         
-        patch_wise_size = (args.input_row_size//args.patch_size,args.input_col_size//args.patch_size)
         interpolate_pos_embed_inputsize(vit_backbone, checkpoint_model,input_size=patch_wise_size,
                                             use_decoder=False)
         # load pre-trained model

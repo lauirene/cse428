@@ -152,9 +152,7 @@ class Inference_Dataset(torch.utils.data.Dataset):
     def convert_rgb(self,data_log,max_value):
         data_red = np.ones(data_log.shape)
         data_log1 = (max_value-data_log)/max_value
-        data_rgb = np.concatenate([data_red,data_log1,data_log1],axis=0,dtype=np.float32)#transform only accept channel last case
-        #data_rgb = data_rgb - imagenet_mean #put normalize to transform
-        #data_rgb = data_rgb / imagenet_std
+        data_rgb = np.concatenate([data_red,data_log1,data_log1],axis=0,dtype=np.float32)
         data_rgb = data_rgb.transpose(1,2,0)
         return data_rgb
     

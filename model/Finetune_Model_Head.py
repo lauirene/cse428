@@ -16,6 +16,16 @@ class Finetune_Model_Head(nn.Module):
     def __init__(self, vit_backbone,task=1,
                  decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
                  mlp_ratio=4., norm_layer=nn.LayerNorm,pos_embed_size=(1,250)):
+        """
+        task 0: fine-tuning setting
+        task 1: reproducibility analysis
+        task 2: loop calling
+        task 3: resolution enhancement
+        task 4: epigenomic assay prediction
+        task 5: scHi-C enhancement
+        task 6: embedding analysis
+        """
+
         super().__init__()
         # --------------------------------------------------------------------------
         # HiCFoundation encoder 
@@ -60,6 +70,9 @@ class Finetune_Model_Head(nn.Module):
                 map_block = nn.Linear(decoder_embed_dim, output_dim)
                 self.map_blocks.append(map_block)
             self.map_blocks = nn.ModuleList(self.map_blocks)
+        elif self.task==0:
+            self.decoder_map = nn.Linear(decoder_embed_dim, patch_size**2 * 1, bias=True) #map to 2d
+            self.map_block = nn.Linear(decoder_embed_dim, output_dim) # map to 1d
         self.num_additional_token = 2 # 1 cls token and 1 count token
         self.initialize_weights()
     @torch.jit.ignore
@@ -72,12 +85,10 @@ class Finetune_Model_Head(nn.Module):
         if self.task==4:
             decoder_pos_embed =get_2d_sincos_pos_embed_rectangle(self.decoder_pos_embed_new.shape[2], self.pos_embed_size, False)
             self.decoder_pos_embed_new.data.copy_(torch.from_numpy(decoder_pos_embed).float().unsqueeze(0))
-        elif self.task==6:
+        else:
             decoder_pos_embed =get_2d_sincos_pos_embed_rectangle(self.decoder_pos_embed.shape[2], self.pos_embed_size, False)
             self.decoder_pos_embed.data.copy_(torch.from_numpy(decoder_pos_embed).float().unsqueeze(0))
-        else:
-            decoder_pos_embed = get_2d_sincos_pos_embed(self.decoder_pos_embed.shape[-1], int(self.patch_embed.num_patches**.5), cls_token=False)
-            self.decoder_pos_embed.data.copy_(torch.from_numpy(decoder_pos_embed).float().unsqueeze(0))
+        
         # initialize patch_embed like nn.Linear (instead of nn.Conv2d)
         w = self.patch_embed.proj.weight.data
         torch.nn.init.xavier_uniform_(w.view([w.shape[0], -1]))
@@ -181,7 +192,23 @@ class Finetune_Model_Head(nn.Module):
     
     def forward(self, img,total_count=None):
         """input hic image"""
-        if self.task==1:
+        if self.task==0:
+            #for fine-tuning
+            decoder_output = self.forward_decoder(img,
+                                                total_count=total_count)
+            submatrix_embedding = decoder_output[:,0,:]
+            pred_2d = self.decoder_map(decoder_output)
+            pred_2d = pred_2d[:,self.num_additional_token:,:]
+            pred_2d = self.unpatchify_channel(pred_2d,1)
+            patch_embedding = decoder_output[:,self.num_additional_token:,:]
+            num_patch_row = self.pos_embed_size[0]
+            num_patch_col = self.pos_embed_size[1]
+            pred_1d = patch_embedding.reshape(shape=(patch_embedding.shape[0], num_patch_row,num_patch_col,-1)) #average all columns
+            pred_1d = torch.mean(pred_1d,dim=2) #N, H, C
+            pred_1d = self.map_block(pred_1d) #N, H, D, where D is the output_dim
+            pred_1d = pred_1d.reshape(pred_1d.shape[0],-1) #N, H*D
+            return submatrix_embedding, pred_2d[:,0,:], pred_1d
+        elif self.task==1:
             #for reproducibility analysis
             decoder_output = self.forward_decoder(img,
                                                 total_count=total_count)

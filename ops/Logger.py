@@ -175,3 +175,13 @@ class MetricLogger(object):
         print('{} Total time: {} ({:.4f} s / it)'.format(
             header, total_time_str, total_time / len(iterable)),flush=True)
 
+
+def print_important_info(str):
+    print("="*50)
+    print("Important:"+str)
+    print("="*50)
+
+def print_warning_info(str):
+    print("*"*50)
+    print("Warning:"+str)
+    print("*"*50)
