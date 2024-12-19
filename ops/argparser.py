@@ -49,9 +49,7 @@ def argparser_finetune():
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N',
                         help='start epoch of fine-tuning. \n \
                             It will be used for resuming training and automatically load from the checkpoint.')
-    parser.add_argument('--num_workers', default=8, type=int,help="workers per GPU")
-    parser.add_argument('--pin_mem', action='store_true',
-                        help='Pin CPU memory in DataLoader for more efficient (sometimes) transfer to GPU.')
+    
     # configure optimizer settings
     parser.add_argument("--lr",default=None,type=float,help="learning rate for fine-tuning. This should not be set, \n \
                         it will be calculated through --batch_size and --blr.")
@@ -83,10 +81,10 @@ def argparser_finetune():
                         "embed_target": the embedding vector in numpy.array format; \n \
                         "1d_target": the 1D target vector in numpy.array format; \n \
                         The last three keys are optional, you can adjust it based on your fine-tuning purpose.')
-    parser.add_argument("--train_info",type=str,help="a .txt file records the training information for input directory. \n \
+    parser.add_argument("--train_config",type=str,help="a .txt file records the training information for input directory. \n \
                         Each line should be the sub-dir name that will be used to train during fine-tuning. \n ")
-    parser.add_argument("--valid_info",type=str,help="a .txt file records the validation information for input directory. \n \
-                        Each line should be the sub-dir name that will be used to validate during fine-tuning. \n ")
+    parser.add_argument("--valid_config",type=str,help="a .txt file records the validation information for input directory. \n \
+                        Each line should be the sub-dir name that  will be used to validate during fine-tuning. \n ")
     #add output config
     parser.add_argument('--output', default='hicfoundation_finetune',help='output directory to save the results. \n \
                         The output directory will contain the fine-tuned model, log files, and tensorboard logs.')

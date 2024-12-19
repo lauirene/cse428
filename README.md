@@ -457,11 +457,23 @@ python3 finetune.py --batch_size [batch_size] --accum_iter [grad_accumulation_st
 - `print_freq`: print frequency. Default: 1.
 - `save_freq`: save frequency. Default: 1.
 <br>
-The output is saved in the ``hicfoundation_finetune``, where the model is saved under ``model`` subdir, the log info is saved under ``log`` subdir, and the tensorboard is saved in ``tensorboard``. <br>
+The output is saved in the [output] directory, where the model is saved under ``model`` subdir, the log info is saved under ``log`` subdir, and the tensorboard is saved in ``tensorboard``. <br>
+The best model is saved as model_best.pth.tar 
 You can use ``tensorboard --logdir="tensorboard" --port 10000`` to track the fine-tuning status from the tensorboard monitor webpage from browser.
 
 #### Example command
-
+```
+python3 finetune.py --batch_size 4 --accum_iter 4 
+    --epochs 50 --warmup_epochs 5 --pin_mem 
+    --blr 1e-3 --min_lr 1e-7 --weight_decay 0.05
+    --layer_decay 0.75 --model vit_large_patch16_dynamicsize --pretrain hicfoundation_model/hicfoundation_pretrain.pth.tar
+    --finetune 1 --seed 888 
+    --loss_type 0 --data_path "example/finetune_example" --train_config "example/finetune_example/train.txt"
+    --valid_config "example/finetune_example/val.txt" --output "hicfoundation_finetune" --tensorboard 1
+    --world_size 1 --dist_url "tcp://localhost:10001" --input_row_size [input_row_size]
+    --input_col_size [input_col_size] --patch_size [patch_size] --print_freq [print_freq] 
+    --save_freq [save_freq]
+```
 
 
 </details>
