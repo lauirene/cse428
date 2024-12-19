@@ -416,9 +416,9 @@ python3 finetune.py --batch_size [batch_size] --accum_iter [grad_accumulation_st
     --resume [resume_model] --finetune [finetune_mode] --seed [random_seed] 
     --loss_type [loss_type] --data_path [train_data_path] --train_config [train_config]
     --valid_config [valid_config] --output [output_directory] --tensorboard [tensorboard] 
-    --world_size [world_size] --dist_url [dist_url] --input_row_size [input_row_size]
-    --input_col_size [input_col_size] --patch_size [patch_size] --print_freq [print_freq] 
-    --save_freq [save_freq]
+    --world_size [world_size] --dist_url [dist_url] --rank [rank]
+    --input_row_size [input_row_size] --input_col_size [input_col_size] --patch_size [patch_size] 
+    --print_freq [print_freq] --save_freq [save_freq]
 ```
 - `batch_size`: batch size for fine-tuning.
 - `accum_iter`: gradient accumulation steps. The effective batch size is batch_size*accum_iter. <br>
@@ -451,6 +451,7 @@ python3 finetune.py --batch_size [batch_size] --accum_iter [grad_accumulation_st
 - `tensorboard`: enable tensorboard log for fine-tuning. Default: 0.
 - `world_size`: number of servers to use for fine-tuning iterations. Default: 1.
 - `dist_url`: url used to set up distributed training. Default: 'tcp://localhost:10001'.
+- `rank`: specify the rank of the server (modified for multi-node training), default 0.
 - `input_row_size`: input row size. Must be a multiple of patch_size. Default: 224.
 - `input_col_size`: input col size. Must be a multiple of patch_size. Default: 224.
 - `patch_size`: patch size for input token. Default: 16.
@@ -463,16 +464,19 @@ You can use ``tensorboard --logdir="tensorboard" --port 10000`` to track the fin
 
 #### Example command
 ```
-python3 finetune.py --batch_size 4 --accum_iter 4 
-    --epochs 50 --warmup_epochs 5 --pin_mem 
-    --blr 1e-3 --min_lr 1e-7 --weight_decay 0.05
-    --layer_decay 0.75 --model vit_large_patch16_dynamicsize --pretrain hicfoundation_model/hicfoundation_pretrain.pth.tar
-    --finetune 1 --seed 888 
-    --loss_type 0 --data_path "example/finetune_example" --train_config "example/finetune_example/train.txt"
-    --valid_config "example/finetune_example/val.txt" --output "hicfoundation_finetune" --tensorboard 1
-    --world_size 1 --dist_url "tcp://localhost:10001" --input_row_size [input_row_size]
-    --input_col_size [input_col_size] --patch_size [patch_size] --print_freq [print_freq] 
-    --save_freq [save_freq]
+python3 finetune.py --batch_size 4 --accum_iter 4 \
+    --epochs 50 --warmup_epochs 5 --pin_mem \
+    --blr 1e-3 --min_lr 1e-7 --weight_decay 0.05 \
+    --layer_decay 0.75 --model vit_large_patch16_dynamicsize \
+    --pretrain hicfoundation_model/hicfoundation_pretrain.pth.tar \
+    --finetune 1 --seed 888 \
+    --loss_type 0 --data_path "example/finetune_example" \
+    --train_config "example/finetune_example/train.txt" \
+    --valid_config "example/finetune_example/val.txt" \
+    --output "hicfoundation_finetune" --tensorboard 1 \
+    --world_size 1 --dist_url "tcp://localhost:10001" --rank 0 \
+    --input_row_size 400 --input_col_size 800 --patch_size 16 \
+    --print_freq 1 --save_freq 1 
 ```
 
 

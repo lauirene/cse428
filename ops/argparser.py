@@ -100,7 +100,7 @@ def argparser_finetune():
     parser.add_argument('--world_size', default=1, type=int,
                         help='number of distributed processes')
     parser.add_argument('--dist_url', default='tcp://localhost:10001', help='url used to set up distributed training')
-    parser.add_argument('--rank', default=-1, type=int,help="specify the rank of each GPU training worker. Configured by the script automatically.")
+    parser.add_argument('--rank', default=0, type=int,help="specify the rank of the server, default 0.")
 
     #configure input size
     parser.add_argument('--input_row_size', default=224, type=int,
