@@ -36,6 +36,9 @@ def to_tensor(x):
     #if already tensor, do nothing
     elif isinstance(x, torch.Tensor):
         pass
+    #if float, convert to tensor
+    elif isinstance(x, float):
+        x = torch.tensor(x)
     return x
 
 def list_to_tensor(x):
