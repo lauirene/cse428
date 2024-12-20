@@ -100,12 +100,13 @@ def main_worker(gpu, ngpus_per_node,args):
     output_dir = os.path.abspath(args.output)
     if global_rank==0:
         os.makedirs(output_dir,exist_ok=True)
-        config_writer(output_dir,args.tensorboard)
+        log_writer =config_writer(output_dir,args.tensorboard)
     elif args.distributed:
         log_writer = None
     else:
         os.makedirs(output_dir,exist_ok=True)
-        config_writer(output_dir,args.tensorboard)
+        log_writer = config_writer(output_dir,args.tensorboard)
+        
 
     cudnn.benchmark = True
     device = torch.device(args.device)
