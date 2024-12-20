@@ -29,7 +29,13 @@ def to_tensor(x):
     Args:
         x: the input data
     """
-    x = torch.from_numpy(x)
+    if isinstance(x, np.ndarray):
+        x = torch.from_numpy(x)
+    elif x is None:
+        x = None
+    #if already tensor, do nothing
+    elif isinstance(x, torch.Tensor):
+        pass
     return x
 
 def list_to_tensor(x):
