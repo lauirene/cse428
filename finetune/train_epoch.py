@@ -150,8 +150,11 @@ def train_epoch(model, data_loader_train, optimizer,
                 output_2d_image = convert_gray_rgbimage(output_2d.clone().detach()[:select_num])
                 output_2d_image = torch_to_nparray(output_2d_image)
                 log_writer.add_images('Output_2d_%s'%"train", output_2d_image, epoch_1000x)
-                for name, param in model.named_parameters():
-                    log_writer.add_histogram(name, param, epoch)
+                # for name, param in model.named_parameters():
+                #     log_writer.add_histogram(name, param, epoch_1000x)
+                #raise errors, see https://github.com/pytorch/pytorch/issues/91516
+                #If you want to use this, install tensorboardX 
+                #then change the code in main_worker.py to "from tensorboardX import SummaryWriter"
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
     print("Averaged stats:", metric_logger)
