@@ -85,6 +85,8 @@ class Finetune_Dataset(torch.utils.data.Dataset):
         return len(self.train_list)
     
     def convert_rgb(self,data_log,max_value):
+        if len(data_log.shape)==2:
+            data_log = data_log[np.newaxis,:]
         data_red = np.ones(data_log.shape)
         data_log1 = (max_value-data_log)/max_value
         data_rgb = np.concatenate([data_red,data_log1,data_log1],axis=0,dtype=np.float32)#transform only accept channel last case

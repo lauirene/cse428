@@ -472,7 +472,7 @@ python3 finetune.py --batch_size [batch_size] --accum_iter [grad_accumulation_st
 - `resume`: resume fine-tuning from a checkpoint. Default: ''. This is used to resume training and automatically load from the checkpoint.
 - `finetune`: fine-tune mode: 1: only fine-tune the model's encoder; 2: fine-tune the whole model.
 - `seed`: random seed for fine-tuning. It is used to make sure results are reproducible. Default: 888.
-- `loss_type`: loss type: 1: MSE loss; 2: Cosine loss. You can define your own loss function in finetune/loss.py. Default: 0.
+- `loss_type`: loss type: 1: MSE loss; 2: Cosine loss. You can define your own loss function in finetune/loss.py. Default: 0. You must specify to valid loss type to run.
 - `data_path`: a directory contains many sub-directory, each sub-dir includes many .pkl files for fine-tuning. 
     The .pkl file should record a dict with following keys refer to different fine-tuning purposes:
     - "input": the input Hi-C/scHi-C matrix in scipy.sparse or numpy.array format.
@@ -506,7 +506,7 @@ python3 finetune.py --batch_size 4 --accum_iter 4 \
     --layer_decay 0.75 --model vit_large_patch16_dynamicsize \
     --pretrain hicfoundation_model/hicfoundation_pretrain.pth.tar \
     --finetune 1 --seed 888 \
-    --loss_type 0 --data_path "example/finetune_example" \
+    --loss_type 1 --data_path "example/finetune_example" \
     --train_config "example/finetune_example/train.txt" \
     --valid_config "example/finetune_example/val.txt" \
     --output "hicfoundation_finetune" --tensorboard 1 \
