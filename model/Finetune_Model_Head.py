@@ -143,9 +143,10 @@ class Finetune_Model_Head(nn.Module):
         imgs: (N, 3, H, W)
         """
         p = self.patch_embed.patch_size[0]
-        h = w = int(x.shape[1]**.5)
-        assert h * w == x.shape[1]
-
+        # h = w = int(x.shape[1]**.5)
+        # assert h * w == x.shape[1]
+        h= self.pos_embed_size[0]
+        w= self.pos_embed_size[1]
         x = x.reshape(shape=(x.shape[0], h, w, p, p, in_chans))
         x = torch.einsum('nhwpqc->nchpwq', x)
         imgs = x.reshape(shape=(x.shape[0], in_chans, h * p, h * p))
