@@ -22,6 +22,26 @@ def validate_input_size(input_matrix, window_height, window_width):
     if input_height==window_height and input_width==window_width:
         return True
     return False 
+
+def to_tensor(x):
+    """
+    Convert the input to tensor
+    Args:
+        x: the input data
+    """
+    x = torch.from_numpy(x)
+    return x
+
+def list_to_tensor(x):
+    """
+    Convert the list to tensor
+    Args:
+        x: the input list
+    """
+    y=[]
+    for i in x:
+        y.append(to_tensor(i))
+    return y
 class Finetune_Dataset(torch.utils.data.Dataset):
     def __init__(self,data_list,   
                 transform=None,
@@ -136,7 +156,7 @@ class Finetune_Dataset(torch.utils.data.Dataset):
         else:
             target_vector = None
 
-        return input_matrix, total_count, target_matrix, embed_target, target_vector
+        return list_to_tensor([input_matrix, total_count, target_matrix, embed_target, target_vector])
         
 
 
