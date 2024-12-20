@@ -149,7 +149,7 @@ class Finetune_Model_Head(nn.Module):
         w= self.pos_embed_size[1]
         x = x.reshape(shape=(x.shape[0], h, w, p, p, in_chans))
         x = torch.einsum('nhwpqc->nchpwq', x)
-        imgs = x.reshape(shape=(x.shape[0], in_chans, h * p, h * p))
+        imgs = x.reshape(shape=(x.shape[0], in_chans, h * p, w * p))
         return imgs
     #@torch.no_grad()
     def forward_backbone(self,img,total_count):
