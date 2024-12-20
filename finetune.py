@@ -21,7 +21,7 @@ def main(args):
     args.world_size = args.world_size*ngpus_per_node
     from finetune.main_worker import main_worker
     if ngpus_per_node==1:
-        main_worker(ngpus_per_node,args)
+        main_worker(args.gpu,ngpus_per_node,args)#if you only have one gpu
     else:
         mp.spawn(main_worker, nprocs=ngpus_per_node, args=(ngpus_per_node,  args))
 

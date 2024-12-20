@@ -113,7 +113,7 @@ def argparser_finetune():
                         help="log frequency for output log during fine-tuning")
     parser.add_argument("--save_freq",default=1,type=int,
                         help="save frequency for saving the fine-tuned model")
-    parser.add_argument("--gpu",default=None,type=str,help="which gpu to use, will be configured by the script automatically")
+    parser.add_argument("--gpu",default="0",type=str,help="which gpu to use, will be configured by the script automatically")
 
 
     return parser

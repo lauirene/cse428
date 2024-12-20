@@ -495,7 +495,7 @@ python3 finetune.py --batch_size [batch_size] --accum_iter [grad_accumulation_st
 - `save_freq`: save frequency. Default: 1.
 <br>
 The output is saved in the [output] directory, where the model is saved under ``model`` subdir, the log info is saved under ``log`` subdir, and the tensorboard is saved in ``tensorboard``. <br>
-The best model is saved as model_best.pth.tar 
+The best model is saved as model_best.pth.tar, which is selected by validation loss. You can modify it based on your expertise and tasks. <br>
 You can use ``tensorboard --logdir="tensorboard" --port 10000`` to track the fine-tuning status from the tensorboard monitor webpage from browser.
 
 #### Example command
@@ -514,6 +514,15 @@ python3 finetune.py --batch_size 4 --accum_iter 4 \
     --input_row_size 400 --input_col_size 800 --patch_size 16 \
     --print_freq 1 --save_freq 1 
 ```
+The output is saved in ``hicfoundation_finetune`` directory, where the model is saved under ``model`` subdir, the log info is saved under ``log`` subdir, and the tensorboard is saved in ``tensorboard``. <br>
+The best model is saved as model_best.pth.tar, which is selected by validation loss. You can modify it based on your expertise and tasks. <br>
+You can use ``tensorboard --logdir="tensorboard" --port 10000`` to track the fine-tuning status from the tensorboard monitor webpage from browser.
 
+### 4. Inference of finetuned model
+After fine-tuning, you can check inference.py pipeline to support your task and deployed it as additional task mode. <br>
+More specifically, you may consider to modify [inference_dataset.py](data_processing/inference_dataset.py) to configure dataset processing, [main_worker.py](inference/main_worker.py) to collect the outputs, [inference_worker.py](inference/inference_worker.py) to modify inference of given input. <br>
+If you think it is important and impactful task and want to include in HiCFoundation, please contact us and we are happy to include your tool into HiCFoundation family. <br>
 
 </details>
+
+
