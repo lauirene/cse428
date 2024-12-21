@@ -53,10 +53,10 @@ class Inference_Dataset(torch.utils.data.Dataset):
             if hic_data.shape[0]<half_window_height:
                 continue
             self.total_count += np.sum(hic_data.data)   
-            combine_raw = np.concatenate([hic_data.row,hic_data.col])
+            combine_row = np.concatenate([hic_data.row,hic_data.col])
             combine_col = np.concatenate([hic_data.col,hic_data.row])
             combine_data = np.concatenate([hic_data.data,hic_data.data])
-            hic_data.row = combine_raw
+            hic_data.row = combine_row
             hic_data.col = combine_col
             hic_data.data = combine_data #triu part
             #divide to half for the diagonal region
@@ -87,47 +87,35 @@ class Inference_Dataset(torch.utils.data.Dataset):
                     
             if self.locus_embedding:
                 #raw submatrix extracted from the original matrix
-                for i in range(0,row_size-self.window_height,self.stride):
+                row_iter_list = list(range(0,row_size-self.window_height,stride))+[row_size-self.window_height]+[row_size-self.window_height-stride]
+                for i in row_iter_list:
+                    i = max(0,i)
                     row_max_bound = min(row_size,i+self.window_height)
                     
-                    #col_start = i-half_window+half_height
+                    
                     #also track of the middle point for better visualization
+                    #here it is not wrong, we specifically use the middle point of the diagonal line as the center of current prediction
                     middle_col_point = i+half_window_height
                     col_start = middle_col_point-half_window_width
                     col_max_bound = min(col_size,middle_col_point+half_window_width)
                     col_start = max(0,col_start)
-                    self.input_index.append([chrom,i,col_start,row_max_bound,col_max_bound,middle_col_point])
-                for i in range(row_size-self.window_height,row_size-self.window_height-2*stride,-stride):
-                    row_max_bound = min(row_size,i+self.window_height)
-                    #col_start = i-half_window+half_height
-                    middle_col_point = i+half_window_height
-                    col_start = middle_col_point-half_window_width
-                    col_start = max(0,col_start)
-                    
-                    col_max_bound = min(col_size,middle_col_point+half_window_width)
-                    
-                    self.input_index.append([chrom,i,col_start,row_max_bound,col_max_bound,middle_col_point])
+                    self.input_index.append((chrom,i,col_start,row_max_bound,col_max_bound,middle_col_point))
             elif self.task!=6:
                 #all inference tasks
-                for i in range(0,row_size-self.window_height,stride):
-                    for j in range(0,col_size-self.window_width,stride):
+                row_iter_list = list(range(0,row_size-self.window_height,stride))+[row_size-self.window_height]+[row_size-self.window_height-stride]
+                col_iter_list = list(range(0,col_size-self.window_width,stride))+[col_size-self.window_width]+[col_size-self.window_width-stride]
+                for i in row_iter_list:
+                    for j in col_iter_list:
                         
                         if abs(i-j)>bounding:
                             continue
+                        i = max(0,i)
+                        j = max(0,j)
                         row_max_bound = min(i+self.window_height,row_size)
                         col_max_bound = min(j+self.window_width,col_size)
                         middle_col_point = (j+col_max_bound)//2
                         self.input_index.append((chrom,i,j,row_max_bound,col_max_bound,middle_col_point))
-                for i in range(row_size-self.window_height,row_size-self.window_height-2*stride,-stride):
-                    for j in range(col_size-self.window_width,col_size-self.window_width-2*stride,-stride):
-                        if abs(i-j)>bounding:
-                            continue
-                        if i<0 or j<0:
-                            continue
-                        row_max_bound = min(i+self.window_height,row_size)
-                        col_max_bound = min(j+self.window_width,col_size)
-                        middle_col_point = (j+col_max_bound)//2
-                        self.input_index.append((chrom,i,j,row_max_bound,col_max_bound,middle_col_point))
+            
             else:
                 #only for the embedding infer task
                 half_window_height = self.window_height//2
@@ -139,8 +127,8 @@ class Inference_Dataset(torch.utils.data.Dataset):
                         cur_col = max(0,j-half_window_width)
                         cur_col_end = min(col_size,j+half_window_width)
                         middle_col_point = (cur_col+cur_col_end)//2
-                        self.input_index.append([chrom,i,j,cur_row_end,
-                                                 cur_col_end,middle_col_point])
+                        self.input_index.append((chrom,i,j,cur_row_end,
+                                                 cur_col_end,middle_col_point))
                 
 
         self.data = new_data
