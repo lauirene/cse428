@@ -434,6 +434,7 @@ The dict is in the following format.
 "embed_target": the embedding 1D vector in numpy.array format, shape: (512);  (optional)
 "1d_target": the 1D target vector in numpy.array format, shape: (M); (optional)
 ```
+For ``input`` and ``2d_target``, please make sure also save the **down diagonal region values** if you used scipy.sparse array format. <br>
 The last three keys are optional, you can adjust it based on your fine-tuning purpose. But you must have at least one key for fine-tuning purposes. <br>
 The example .pkl can be accessed under [finetune_example](example/finetune_example/train/). <br>
 You can update the key and code to allow other keys based on your purposes.
@@ -526,3 +527,39 @@ If you think it is important and impactful task and want to include in HiCFounda
 </details>
 
 
+## Pre-training framework of  HiCFoundation
+<details>
+<summary>Pre-training frameowork of HiCFoundation, you can adapt to train a foundation model in your area with your own data.</summary>
+
+To help adapt and pre-train your own foundation model on the biological data of your interest, we also release the pre-train framework here. We believe you can easily train your own foundation model given your data. 
+### 1. Dataset prparation
+The dataset should be prepared in a directory [data_path] (keep in mind that you will use later), where the directory organization should be organized as
+```
+-[HiC-ID1]
+  --input1.pkl
+  --input2.pkl
+  ...
+-[HiC-ID2]
+  --input1.pkl
+  --input2.pkl
+  ...
+...
+```
+Under each sub-directory, each example is saved in .pkl file in dict format. <br>
+The dict is in the following format.
+```
+"input": the input Hi-C sub-matrix in scipy.sparse or numpy.array format, shape: (M,N);
+"input_count": the total count of corresponding Hi-C expriment, should be a float scalar value (Optional).
+```
+For ``input``, please make sure also save the **down diagonal region values** if you used scipy.sparse array format. <br>
+The example .pkl can be accessed under [pretrain_example](example/pretrain_example/train/). <br>
+
+### 2. Congigure training examples
+To specify the experiment for training and validation, you should use [train_config] and [valid_config] to configure. <br>
+In each line of these files, you can put the [HiC-ID] to indicate the correponding directory should be used to in train or valid. <br>
+You can check the config example [train_config](example/pretrain_example/train.txt) and [valid_config](example/pretrain_example/val.txt).
+
+### 3. Pretrain Foundation model with your own data
+
+
+</details>

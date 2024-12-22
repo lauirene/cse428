@@ -117,3 +117,88 @@ def argparser_finetune():
 
 
     return parser
+
+
+def  argparser_pretrain():
+    parser = argparse.ArgumentParser('HiCFoundation pre-training', add_help=False)
+    #config pre-training settings
+    parser.add_argument('--batch_size', default=128, type=int,
+                        help='Batch size of the input')
+    parser.add_argument('--accum_iter', default=4, type=int,
+                        help='Accumulate gradient iterations (for increasing the effective batch size under memory constraints)\n \
+                        The effective batch size is batch_size*accum_iter. \n If you have memory constraints, \
+                        you can increase --accum_iter and reduce the --batch_size to trade off memory for computation. \n \
+                        ')
+    parser.add_argument("--epochs",default=100,type=int,help="number of epochs for pre-training")
+    parser.add_argument("--warmup_epochs",default=10,type=int,
+                        help="number of warmup epochs for pre-training")
+    parser.add_argument('--start_epoch', default=0, type=int, metavar='N',
+                        help='start epoch of pre-training. \n \
+                            It will be used for resuming training and automatically load from the checkpoint.')
+    parser.add_argument('--mask_ratio', default=0.75, type=float,
+                        help='Masking ratio (percentage of removed patches).')
+    parser.add_argument("--sparsity_ratio",default=0.05,type=float,
+                        help="Used to the submatrix if the valid contact is less than sparsity_ratio*region_size")
+    parser.add_argument("--loss_alpha",default=1,type=float,help="loss weight for the patch-contrastive loss")
+    
+    # configure optimizer settings
+    parser.add_argument("--lr",default=None,type=float,help="learning rate for fine-tuning. This should not be set, \n \
+                        it will be calculated through --batch_size and --blr.")
+    parser.add_argument('--blr', type=float, default=1.5e-3, metavar='LR',
+                        help='base learning rate: absolute_lr = base_lr * total_batch_size / 256')
+    parser.add_argument('--min_lr', type=float, default=0., metavar='LR',
+                        help='lower lr bound for learning rate decay during fine-tuning.')
+    parser.add_argument("--weight_decay",default=0.05,type=float,help="weight decay for fine-tuning")
+    parser.add_argument('--layer_decay', type=float, default=0.75,
+                        help='layer-wise lr decay during fine-tuning')
+    
+    # configure the fine-tuning model settings
+    parser.add_argument("--model",default='vit_large_patch16_dynamicsize',
+                        type=str,help="model name for fine-tuning")
+    #add resume to support resuming training from a checkpoint
+    parser.add_argument("--resume",default='',type=str,help='resume fine-tuning from a checkpoint')
+    parser.add_argument('--seed', default=888, type=int,help="random seed for fine-tuning. It is used to make sure results are reproducible.")
+    #configure loss type
+    parser.add_argument("--loss_type",default=0,type=int,help="1: Contrastive-patch loss+SSIM loss; \n You can define your own loss function in pretrain/loss.py")
+
+    # Dataset parameters
+    parser.add_argument('--data_path', type=str, help='a directory contains many sub-directory, each sub-dir includes many .pkl files for pre-training. \n \
+                        The .pkl file should record a dict with following keys refer to different fine-tuning purposes\n \
+                        "input": the input Hi-C/scHi-C matrix in scipy.sparse or numpy.array format; \n \
+                        "input_count": the total count of corresponding Hi-C expriment (optional); ')
+    parser.add_argument("--train_config",type=str,help="a .txt file records the training information for input directory. \n \
+                        Each line should be the sub-dir name that will be used to train during fine-tuning. \n ")
+    parser.add_argument("--valid_config",type=str,help="a .txt file records the validation information for input directory. \n \
+                        Each line should be the sub-dir name that  will be used to validate during fine-tuning. \n ")
+    #add output config
+    parser.add_argument('--output', default='hicfoundation_finetune',help='output directory to save the results. \n \
+                        The output directory will contain the fine-tuned model, log files, and tensorboard logs.')
+    parser.add_argument("--tensorboard",default=0,type=int,help="1: enable tensorboard log for fine-tuning; 0: disable tensorboard log for fine-tuning")
+
+    #config distributed training 
+    parser.add_argument('--device', default='cuda', help='device to use for fine-tuning iterations')
+    parser.add_argument('--num_workers', default=8, type=int,help="workers per GPU. You can adjust it based on your server's configuration.")
+    parser.add_argument('--pin_mem', action='store_true',
+                        help='Pin CPU memory in DataLoader for more efficient (sometimes) transfer to GPU.')
+    #parser.set_defaults(pin_mem=True)
+
+    parser.add_argument('--world_size', default=1, type=int,
+                        help='number of distributed processes')
+    parser.add_argument('--dist_url', default='tcp://localhost:10001', help='url used to set up distributed training')
+    parser.add_argument('--rank', default=0, type=int,help="specify the rank of the server, default 0.")
+
+    #configure input size
+    parser.add_argument('--input_row_size', default=224, type=int,
+                        help='input submatrix row size')
+    parser.add_argument("--input_col_size",default=4000,type=int,help="input submatrix column size")
+    parser.add_argument("--patch_size",default=16,type=int,help="patch size for the input submatrix")
+    
+    #configure print/save frequency
+    parser.add_argument("--print_freq",default=1,type=int,
+                        help="log frequency for output log during fine-tuning")
+    parser.add_argument("--save_freq",default=1,type=int,
+                        help="save frequency for saving the fine-tuned model")
+    parser.add_argument("--gpu",default="0",type=str,help="which gpu to use, will be configured by the script automatically")
+
+
+    return parser

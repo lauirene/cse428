@@ -10,7 +10,7 @@ import torchvision.transforms as transforms
 
 from ops.distribute_utils import init_distributed_mode,get_world_size,get_rank,is_main_process
 from data_processing.finetune_dataset import Finetune_Dataset
-from data_processing.finetune_collate_fn import collate_fn
+from data_processing.collate_fn import collate_fn
 from model.pos_embed import interpolate_pos_embed_inputsize
 from ops.Logger import print_important_info,print_warning_info
 from ops.io_utils import write_log
