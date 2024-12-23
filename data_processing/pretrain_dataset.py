@@ -129,8 +129,8 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
                             print("The dir is {}".format(cur_dir))
                             continue
                         #check input_count key
-                        if 'input_count' in data:
-                            self.input_count_flag = True
+                        # if 'input_count' in data:
+                        #     self.input_count_flag = True
                         # if 'input_count' not in data:
                         #     print("The input_count key is not included in the pkl file. The directory is skipped.")
                         #     print("The dir is {}".format(cur_dir))
@@ -193,14 +193,10 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
         if 'input_count' in data:
             matrix_count = np.sum(input_matrix)
             hic_count = data['input_count']
-        elif self.input_count_flag:
+        else:
             hic_count = 1000000000 #as placeholder for cases user some data without input_count but some with
             matrix_count = np.sum(input_matrix)
-        else:
-            matrix_count =  np.sum(input_matrix)
-            hic_count = None
         
-
         submat = np.zeros([1,self.window_height,self.window_width])
 
         #judge if we need to use diag or not

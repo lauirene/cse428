@@ -39,6 +39,7 @@ def train_epoch(model,data_loader,optimizer,
             ssim_loss,contrastive_loss, count_pred, pred_image, mask \
               = model(input_matrix, mask_matrix, total_count=hic_count,  \
                 diag=return_diag,mask_ratio=args.mask_ratio)
+            
             matrix_count = torch.log10(matrix_count+1)
             count_pred = count_pred.flatten()
             count_loss = torch.nn.functional.mse_loss(count_pred, matrix_count)
