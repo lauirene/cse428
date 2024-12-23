@@ -151,6 +151,7 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
                     print("The file {} is not a .pkl file.".format(file),"It is skipped.")
                     continue    
         print("The number of samples used in the dataset is {}".format(len(self.train_list)))
+        print("Use count flag is {}".format(self.input_count_flag))
     #you can either select the train_list or train_dict to do training based on your exprience
     def __len__(self):
         return len(self.train_list)
@@ -196,7 +197,7 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
             hic_count = 1000000000 #as placeholder for cases user some data without input_count but some with
             matrix_count = np.sum(input_matrix)
         else:
-            matrix_count = None
+            matrix_count =  np.sum(input_matrix)
             hic_count = None
         
 
