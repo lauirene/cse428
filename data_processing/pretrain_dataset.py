@@ -70,14 +70,14 @@ def sample_diag_index(matrix_size,window_size,diagonal_index,patch_size):
     candidate_list=[diagonal_index]
     left_index= diagonal_index
     while left_index>0:
-        left_index = diagonal_index - patch_size
+        left_index = left_index - patch_size
         if left_index>=0:
             candidate_list.append(left_index)
         else:
             break
     right_index = diagonal_index
     while right_index<matrix_size:
-        right_index = diagonal_index + patch_size
+        right_index = right_index + patch_size
         if right_index<matrix_size:
             candidate_list.append(right_index)
         else:
@@ -117,6 +117,7 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
             cur_dir = data_dir
             dataset_name = os.path.basename(cur_dir)
             listfiles = os.listdir(cur_dir)
+            listfiles = sorted(listfiles)
             for file_index,file in enumerate(listfiles):
                 cur_path = os.path.join(cur_dir, file)
                 if file.endswith('.pkl'):
