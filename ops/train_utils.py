@@ -12,7 +12,9 @@ def to_device(data, device):
 def list_to_device(data_list, device):
     new_data_list = []
     for data in data_list:
-        new_data_list.append(to_device(data, device))
+        data = to_device(data, device)
+        data = data.float()
+        new_data_list.append(data)
     return new_data_list
 
 def to_value(data):
