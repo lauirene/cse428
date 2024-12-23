@@ -13,7 +13,8 @@ def list_to_device(data_list, device):
     new_data_list = []
     for data in data_list:
         data = to_device(data, device)
-        data = data.float()
+        if data is not None:
+            data = data.float()
         new_data_list.append(data)
     return new_data_list
 
