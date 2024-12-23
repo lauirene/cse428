@@ -193,15 +193,16 @@ def main_worker(gpu, ngpus_per_node,args):
                 log_writer=log_writer,
                 args=args
                 )
-        val_stats = {**{f'valid_{k}': v for k, v in val_stats.items()},
-                    'epoch': epoch,}
+        val_loss = val_stats['loss']
+        log_stats_val = {**{f'val_{k}': v for k, v in val_stats.items()},
+                        'epoch': epoch,}
         if is_main_process():
-            write_log(log_dir,"valid",val_stats)
+            write_log(log_dir,"val",log_stats_val)
         if epoch%save_freq==0 or epoch==epochs-1:
             #output_dir, args,epoch, model_without_ddp, optimizer, loss_scaler
             save_checkpoint(model_dir, args,epoch, model_without_ddp, optimizer, loss_scaler)
         
-        val_loss = val_stats['loss']
+        
         if val_loss < best_loss:
             best_loss = val_loss
             #model_path,args,epoch, model_without_ddp, optimizer, loss_scaler
