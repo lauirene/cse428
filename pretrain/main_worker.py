@@ -126,7 +126,7 @@ def main_worker(gpu, ngpus_per_node,args):
 
     # Configure the model
     patch_wise_size = (args.input_row_size//args.patch_size,args.input_col_size//args.patch_size)
-    model = models_hicfoundation.__dict__[args.model](img_size=(args.input_row_size,args.input_col_size)))
+    model = models_hicfoundation.__dict__[args.model](img_size=(args.input_row_size,args.input_col_size))
     
     model.to(device)
     model_without_ddp = model
