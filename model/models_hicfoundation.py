@@ -206,8 +206,9 @@ class Models_HiCFoundation(nn.Module):
         total_count: [N, 1] total count of Hi-C, serve as input to predict the submatrix count
         """
         B, C, H, W = imgs.shape
+        
         # embed patches
-        x = self.patch_embed(x)
+        x = self.patch_embed(imgs)
 
         # add pos embed w/o cls token
         x = x + self.pos_embed[:, 1:, :]
