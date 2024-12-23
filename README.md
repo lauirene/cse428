@@ -502,7 +502,8 @@ python3 finetune.py --batch_size [batch_size] --accum_iter [grad_accumulation_st
 <br>
 The output is saved in the [output] directory, where the model is saved under ``model`` subdir, the log info is saved under ``log`` subdir, and the tensorboard is saved in ``tensorboard``. <br>
 The best model is saved as model_best.pth.tar, which is selected by validation loss. You can modify it based on your expertise and tasks. <br>
-You can use ``tensorboard --logdir="tensorboard" --port 10000`` to track the fine-tuning status from the tensorboard monitor webpage from browser.
+You can use ``tensorboard --logdir="tensorboard" --port 10000`` to track the fine-tuning status from the tensorboard monitor webpage from browser. <br>
+Please make sure you include at least **batch_size*num_gpu** examples in the training directory, otherwise the training will crash because there is no example for even one batch training.
 
 #### Example command
 ```
@@ -522,7 +523,8 @@ python3 finetune.py --batch_size 1 --accum_iter 4 \
 ```
 The output is saved in ``hicfoundation_finetune`` directory, where the model is saved under ``model`` subdir, the log info is saved under ``log`` subdir, and the tensorboard is saved in ``tensorboard``. <br>
 The best model is saved as model_best.pth.tar, which is selected by validation loss. You can modify it based on your expertise and tasks. <br>
-You can use ``tensorboard --logdir="tensorboard" --port 10000`` to track the fine-tuning status from the tensorboard monitor webpage from browser.
+You can use ``tensorboard --logdir="tensorboard" --port 10000`` to track the fine-tuning status from the tensorboard monitor webpage from browser. <br>
+Please make sure you include at least **batch_size*num_gpu** examples in the training directory, otherwise the training will crash because there is no example for even one batch training.
 
 ### 4. Inference of finetuned model
 After fine-tuning, you can check inference.py pipeline to support your task and deployed it as additional task mode. <br>
@@ -625,7 +627,8 @@ python3 pretrain.py --batch_size [batch_size] --accum_iter [grad_accumulation_st
 <br>
 The output is saved in the [output] directory, where the model is saved under ``model`` subdir, the log info is saved under ``log`` subdir, and the tensorboard is saved in ``tensorboard``. <br>
 The best model is saved as model_best.pth.tar, which is selected by validation loss. You can modify it based on your expertise when pre-trained on other data. <br>
-You can use ``tensorboard --logdir="tensorboard" --port 10000`` to track the pre-training status from the tensorboard monitor webpage from browser.
+You can use ``tensorboard --logdir="tensorboard" --port 10000`` to track the pre-training status from the tensorboard monitor webpage from browser. <br>
+Please make sure you include at least **batch_size*num_gpu** examples in the training directory, otherwise the training will crash because there is no example for even one batch training.
 
 #### Example command
 ```
@@ -642,6 +645,7 @@ python3 pretrain.py --batch_size 1 --accum_iter 4 \
 ```
 The output is saved in ``hicfoundation_finetune`` directory, where the model is saved under ``model`` subdir, the log info is saved under ``log`` subdir, and the tensorboard is saved in ``tensorboard``. <br>
 The best model is saved as model_best.pth.tar, which is selected by validation loss. You can modify it based on your expertise when pre-trained on other data. <br>
+Please make sure you include at least **batch_size*num_gpu** examples in the training directory, otherwise the training will crash because there is no example for even one batch training.
 
 ### 4. Fine-tuning for different tasks
 Please see the instructions in [Fine-tuning section](#Fine-tuning-HiCFoundation-for-new-tasks) to finetune your pre-trained model for different downstream tasks.

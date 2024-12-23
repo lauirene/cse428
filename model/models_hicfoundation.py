@@ -171,32 +171,36 @@ class Models_HiCFoundation(nn.Module):
         # self.mask = mask
         return x_masked, mask, ids_restore
     
-    def patchify(self, imgs):
+    def patchify(self, imgs,in_chans=None):
         """
         imgs: (N, 3, H, W)
         x: (N, L, H*W *self.in_chans)
         """
+        if in_chans is None:
+            in_chans = self.in_chans
         p = self.patch_size
         h = self.pos_embed_size[0]
         w = self.pos_embed_size[1]
 
-        x = imgs.reshape(shape=(imgs.shape[0], self.in_chans, h, p, w, p))
+        x = imgs.reshape(shape=(imgs.shape[0], in_chans, h, p, w, p))
         x = torch.einsum('nchpwq->nhwpqc', x)
-        x = x.reshape(shape=(imgs.shape[0], h * w, p**2 * self.in_chans))
+        x = x.reshape(shape=(imgs.shape[0], h * w, p**2 * in_chans))
         return x
     
-    def unpatchify(self, x):
+    def unpatchify(self, x,in_chans=None):
         """
         x: (N, L, patch_size**2 *self.in_chans)
         """
+        if in_chans is None:
+            in_chans = self.in_chans
         p = self.patch_size
         h = self.pos_embed_size[0]
         w = self.pos_embed_size[1]
         assert h * w == x.shape[1]
 
-        x = x.reshape(shape=(x.shape[0], h, w, p, p, self.in_chans))
+        x = x.reshape(shape=(x.shape[0], h, w, p, p, in_chans))
         x = torch.einsum('nhwpqc->nchpwq', x)
-        imgs = x.reshape(shape=(x.shape[0], self.in_chans, h * p, w * p))
+        imgs = x.reshape(shape=(x.shape[0], in_chans, h * p, w * p))
         return imgs
 
     def forward_encoder(self, imgs, total_count=None, diag=None,mask_ratio=0.75):
@@ -291,7 +295,7 @@ class Models_HiCFoundation(nn.Module):
             pred_image = torch.einsum("bchw,c->bchw",pred_image,imagenet_std)
             pred_image = torch.clip((pred_image+ imagenet_mean.unsqueeze(0).unsqueeze(-1).unsqueeze(-1)) , 0, 1)
             target = self.patchify(imgs_input)
-            imgs_mask = self.patchify(imgs_mask) #N,L,C
+            imgs_mask = self.patchify(imgs_mask,1) #N,L,C
         elif self.in_chans==1:
             imgs = imgs*imgs_mask
             target = self.patchify(imgs)
