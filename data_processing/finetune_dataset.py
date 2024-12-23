@@ -39,6 +39,8 @@ def to_tensor(x):
     #if float, convert to tensor
     elif isinstance(x, float):
         x = torch.tensor(x)
+    elif isinstance(x, int):
+        x = torch.tensor(x)
     return x
 
 def list_to_tensor(x):

@@ -462,8 +462,8 @@ python3 finetune.py --batch_size [batch_size] --accum_iter [grad_accumulation_st
     --input_row_size [input_row_size] --input_col_size [input_col_size] \
     --patch_size [patch_size] --print_freq [print_freq] --save_freq [save_freq]
 ```
-- `batch_size`: batch size for fine-tuning.
-- `accum_iter`: gradient accumulation steps. The effective batch size is batch_size*accum_iter. <br>
+- `batch_size`: batch size per GPU for fine-tuning.
+- `accum_iter`: gradient accumulation steps. The effective batch size is batch_size*accum_iter*num_GPU. <br>
     If you have memory constraints, you can increase --accum_iter and reduce the --batch_size to trade off memory for computation. 
 - `epochs`: number of epochs for fine-tuning. Default: 50. 
     The performance will increase with more epochs, but 50 should be enough to have very good performances.
@@ -506,7 +506,7 @@ You can use ``tensorboard --logdir="tensorboard" --port 10000`` to track the fin
 
 #### Example command
 ```
-python3 finetune.py --batch_size 4 --accum_iter 4 \
+python3 finetune.py --batch_size 1 --accum_iter 4 \
     --epochs 50 --warmup_epochs 5 --pin_mem \
     --blr 1e-3 --min_lr 1e-7 --weight_decay 0.05 \
     --layer_decay 0.75 --model vit_large_patch16 \
@@ -584,8 +584,8 @@ python3 pretrain.py --batch_size [batch_size] --accum_iter [grad_accumulation_st
     --input_row_size [input_row_size] --input_col_size [input_col_size] \
     --patch_size [patch_size] --print_freq [print_freq] --save_freq [save_freq] 
 ```
-- `batch_size`: batch size for pre-training.
-- `accum_iter`: gradient accumulation steps. The effective batch size is batch_size*accum_iter. <br>
+- `batch_size`: batch size per GPU for pre-training.
+- `accum_iter`: gradient accumulation steps. The effective batch size is batch_size*accum_iter*num_GPU. <br>
     If you have memory constraints, you can increase --accum_iter and reduce the --batch_size to trade off memory for computation. 
     For pre-training, the recommended actual batch_size should be >=1024.
 - `epochs`: number of epochs for pre-traiing. Default: 100. 
@@ -629,7 +629,7 @@ You can use ``tensorboard --logdir="tensorboard" --port 10000`` to track the pre
 
 #### Example command
 ```
-python3 pretrain.py --batch_size 4 --accum_iter 4 \
+python3 pretrain.py --batch_size 1 --accum_iter 4 \
     --epochs 100 --warmup_epochs 10 --pin_mem \
     --mask_ratio 0.75 --sparsity_ratio 0.05 \
     --blr 1.5e-4 --min_lr 1e-7 --weight_decay 0.05 \

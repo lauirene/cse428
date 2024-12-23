@@ -312,8 +312,8 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
         mask_array = mask_array[np.newaxis,:,:]
         input = submat
         max_value = np.max(input)
-        input = np.log(input+1)
-        max_value = np.log(max_value+1)
+        input = np.log10(input+1)
+        max_value = np.log10(max_value+1)
         input = self.convert_rgb(input,max_value)
         if self.transform is not None:
             input = self.transform(input)
