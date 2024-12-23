@@ -110,7 +110,7 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
         self.window_width = window_width
         self.sparsity_filter = sparsity_filter
         self.patch_size = patch_size
-        self.input_count_flag = False
+        # self.input_count_flag = False
         self.train_dict=defaultdict(list)
         self.train_list=[]
         for data_index, data_dir in enumerate(data_list):
@@ -151,7 +151,7 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
                     print("The file {} is not a .pkl file.".format(file),"It is skipped.")
                     continue    
         print("The number of samples used in the dataset is {}".format(len(self.train_list)))
-        print("Use count flag is {}".format(self.input_count_flag))
+        #print("Use count flag is {}".format(self.input_count_flag))
     #you can either select the train_list or train_dict to do training based on your exprience
     def __len__(self):
         return len(self.train_list)
@@ -193,10 +193,14 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
         if 'input_count' in data:
             matrix_count = np.sum(input_matrix)
             hic_count = data['input_count']
+            if hic_count is None:
+                hic_count = 1000000000
+        
         else:
             hic_count = 1000000000 #as placeholder for cases user some data without input_count but some with
             matrix_count = np.sum(input_matrix)
-        
+        hic_count = float(hic_count)
+
         submat = np.zeros([1,self.window_height,self.window_width])
 
         #judge if we need to use diag or not
