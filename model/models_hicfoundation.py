@@ -80,7 +80,7 @@ class Models_HiCFoundation(nn.Module):
         self.img_size = img_size
         input_row_size = img_size[0]
         input_col_size = img_size[1]
-        self.pos_embed_size = (self.input_row_size // patch_size, self.input_col_size // patch_size)
+        self.pos_embed_size = (input_row_size // patch_size, input_col_size // patch_size)
         self.patch_embed  = PatchEmbed(self.img_size, patch_size, in_chans, embed_dim)
         num_patches = self.patch_embed.num_patches
         self.num_patches = num_patches
