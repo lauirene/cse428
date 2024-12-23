@@ -22,7 +22,7 @@ def load_model(resume_path,args,model_without_ddp, optimizer, loss_scaler):
         msg=model_without_ddp.load_state_dict(checkpoint['model'], strict=False)
         print("model resume message:{}".format(msg))
         optimizer.load_state_dict(checkpoint['optimizer'])
-        loss_scaler.load_state_dict(checkpoint['loss_scaler'])
+        loss_scaler.load_state_dict(checkpoint['scaler'])
         args.start_epoch = checkpoint['epoch'] + 1
         print("=> loaded checkpoint '{}' (epoch {})".format(resume_path, checkpoint['epoch']))
     else:

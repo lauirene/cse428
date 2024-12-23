@@ -55,6 +55,39 @@ def sample_index_patch(matrix_size,window_size,patch_size):
         patch_list.append(i)
     start = random.choice(patch_list)
     return start
+
+def sample_diag_index(matrix_size,window_size,diagonal_index,patch_size):
+    """
+    Sample the index of the window
+    Args:
+        matrix_size: the size of the matrix
+        window_size: the size of the window
+        diagonal_index: the index of the diagonal
+    """
+    if diagonal_index<0 or diagonal_index>=matrix_size:
+        #invalid diagonal index
+        return sample_index(matrix_size,window_size)
+    candidate_list=[diagonal_index]
+    left_index= diagonal_index
+    while left_index>0:
+        left_index = diagonal_index - patch_size
+        if left_index>=0:
+            candidate_list.append(left_index)
+        else:
+            break
+    right_index = diagonal_index
+    while right_index<matrix_size:
+        right_index = diagonal_index + patch_size
+        if right_index<matrix_size:
+            candidate_list.append(right_index)
+        else:
+            break
+    candidate_list = sorted(candidate_list)
+    final_candidate_list= [index for index in candidate_list if index+window_size<=matrix_size]
+    if len(final_candidate_list)==0:
+        final_candidate_list = candidate_list[0:1]
+    start = random.choice(final_candidate_list)
+    return start
 class Pretrain_Dataset(torch.utils.data.Dataset):
     def __init__(self,data_list,   
                 transform=None,
@@ -70,12 +103,14 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
             window_height: the height of the window
             window_width: the width of the window
         """
+        
         self.data_list = data_list
         self.transform = transform
         self.window_height = window_height
         self.window_width = window_width
         self.sparsity_filter = sparsity_filter
         self.patch_size = patch_size
+        self.input_count_flag = False
         self.train_dict=defaultdict(list)
         self.train_list=[]
         for data_index, data_dir in enumerate(data_list):
@@ -94,6 +129,8 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
                             print("The dir is {}".format(cur_dir))
                             continue
                         #check input_count key
+                        if 'input_count' in data:
+                            self.input_count_flag = True
                         # if 'input_count' not in data:
                         #     print("The input_count key is not included in the pkl file. The directory is skipped.")
                         #     print("The dir is {}".format(cur_dir))
@@ -155,6 +192,9 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
         if 'input_count' in data:
             matrix_count = np.sum(input_matrix)
             hic_count = data['input_count']
+        elif self.input_count_flag:
+            hic_count = 1000000000 #as placeholder for cases user some data without input_count but some with
+            matrix_count = np.sum(input_matrix)
         else:
             matrix_count = None
             hic_count = None
@@ -162,10 +202,107 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
 
         submat = np.zeros([1,self.window_height,self.window_width])
 
+        #judge if we need to use diag or not
+        use_diag_flag=False
+
+        if "diag" not in data:        
+            pass
+        else:
+            diag = data['diag']
+            if diag is None:
+                pass
+            elif (diag<0 and abs(diag)>=input_matrix.shape[0]):
+                pass
+            elif (diag>0 and diag>=input_matrix.shape[1]):
+                pass
+            else:
+                use_diag_flag=True
         
-        row_start = sample_index(input_matrix.shape[0],self.window_height)
-        col_start = sample_index(input_matrix.shape[1],self.window_width)
-            
+        if not use_diag_flag:
+            row_start = sample_index(input_matrix.shape[0],self.window_height)
+            col_start = sample_index(input_matrix.shape[1],self.window_width)
+            return_diag= max(self.window_height,self.window_width)+1#indicating no diag needed to use
+        else:
+            M,N = input_matrix.shape
+            if diag<0:
+                #diag starts at [diag,0], ends [M-1,M-1-abs(diag)] if M<N
+                #else have the possibility diag starts at [diag,0], ends [N-1+diag,N-1] if M>=N
+                diag = abs(diag) #make sure diag is positive to do calculation
+                if M-abs(diag)<N:
+                    #first sample col_start, to check if diagonal region is included
+                    col_start = sample_index(input_matrix.shape[1],self.window_width)
+                    diag_col_end = input_matrix.shape[0]-abs(diag)
+                    if col_start>=diag_col_end:
+                        row_start = sample_index(input_matrix.shape[0],self.window_height)
+                        return_diag= max(self.window_height,self.window_width)+1 #no diag needed to use
+                    else:
+                        #diagonal region is included
+                        #use the diagonal index and row start to define the row_start we can use
+                        #make sure the diagonal region is in the patch boundary
+                        search_diag = abs(diag)+col_start
+                        row_start=sample_diag_index(input_matrix.shape[0],self.window_height,search_diag,self.patch_size)
+                        return_diag = row_start-search_diag
+                        #if it is positive, then boundary starts in row of submatrix, if it is negative, then boundary starts in col of submatrix
+                        #here we limits the freedom to not consider the bigger randomness if abs(diag)>self.window_height, then the row_start can be have more choices
+                        #because col_start is already full degree of randomness
+                else:
+                    #diag starts at [diag,0], ends [diag+N-1,N-1] if M>=N
+                    #consider only possiblility of diagonal region is not included
+                    row_start = sample_index(input_matrix.shape[0],self.window_height)
+                    if row_start+self.window_height<abs(diag) or row_start>=M-abs(diag)-N:
+                        col_start = sample_index(input_matrix.shape[1],self.window_width)
+                        return_diag= max(self.window_height,self.window_width)+1
+                    else:
+                        #diagonal region is included
+                        search_diag = row_start-abs(diag)
+                        if search_diag>0:
+                            col_start=sample_diag_index(input_matrix.shape[1],self.window_width,search_diag,self.patch_size)
+                            return_diag = search_diag-col_start
+                            #if it is positive, then boundary starts in row of submatrix, if it is negative, then boundary starts in col of submatrix
+                        else:
+                            #full random of col_start, then control row_start to make sure diagonal in the patch boundary
+                            col_start = sample_index(input_matrix.shape[1],self.window_width)
+                            search_diag=col_start+abs(diag)
+                            row_start=sample_diag_index(input_matrix.shape[0],self.window_height,search_diag,self.patch_size)
+                            return_diag = row_start-search_diag
+            else:
+                #diag starts at [0,diag], ends [M-1,M-1+diag] if M<N
+                #else have the possiblity diag starts at [0,diag], ends [N-1-diag,N-1] if M>=N
+                diag=abs(diag)
+                if M+diag<N:
+                    #1st situation: diag starts at [0,diag], ends [M-1,M-1+diag]
+                    col_start = sample_index(input_matrix.shape[1],self.window_width)
+                    diag_col_left = diag
+                    diag_col_right= M+diag
+                    if col_start+self.window_width<=diag_col_left or col_start>=diag_col_right:
+                        row_start = sample_index(input_matrix.shape[0],self.window_height)
+                        return_diag= max(self.window_height,self.window_width)+1
+                    else:
+                        #diagonal region is included
+                        search_diag = col_start-diag
+                        if search_diag>=0:
+                            row_start=sample_diag_index(input_matrix.shape[0],self.window_height,search_diag,self.patch_size)
+                            return_diag=row_start-search_diag
+                        else:
+                            #full random of row_start, then control col_start to make sure diagonal in the patch boundary
+                            row_start = sample_index(input_matrix.shape[0],self.window_height)
+                            search_diag=row_start+diag
+                            col_start=sample_diag_index(input_matrix.shape[1],self.window_width,search_diag,self.patch_size)
+                            return_diag = search_diag-col_start
+                else:
+                    #2nd condition: diag starts at [0,diag], ends [N-1-diag,N-1]
+                    row_start = sample_index(input_matrix.shape[0],self.window_height)
+                    diag_row_end = N-diag
+                    if row_start>=diag_row_end:
+                        col_start = sample_index(input_matrix.shape[1],self.window_width)
+                        return_diag= max(self.window_height,self.window_width)+1
+                    else:
+                        #diagonal region is included
+                        search_diag = row_start+diag
+                        col_start=sample_diag_index(input_matrix.shape[1],self.window_width,search_diag,self.patch_size)
+                        return_diag = search_diag-col_start
+                        #here we limits the freedom to not consider the bigger randomness if abs(diag)>self.window_width, then the col_start can be have more choices
+                        #because row_start is already full degree of randomness
         row_end = min(row_start+self.window_height,input_matrix.shape[0])
         col_end = min(col_start+self.window_width,input_matrix.shape[1])
         submat[0,0:row_end-row_start,0:col_end-col_start] = input_matrix[row_start:row_end,col_start:col_end] 
@@ -180,4 +317,4 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
         input = self.convert_rgb(input,max_value)
         if self.transform is not None:
             input = self.transform(input)
-        return list_to_tensor([input, mask_array, hic_count, matrix_count])
+        return list_to_tensor([input, mask_array, hic_count, return_diag,matrix_count])

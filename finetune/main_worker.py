@@ -14,8 +14,8 @@ from data_processing.collate_fn import collate_fn
 from model.pos_embed import interpolate_pos_embed_inputsize
 from ops.Logger import print_important_info,print_warning_info
 from ops.io_utils import write_log
-import finetune.lr_decay as lrd
-from finetune.NativeScaler import NativeScalerWithGradNormCount as NativeScaler
+import model.lr_decay as lrd
+from model.NativeScaler import NativeScalerWithGradNormCount as NativeScaler
 from model.model_utils import load_model,save_checkpoint,save_model2path
 from finetune.train_epoch import train_epoch
 from finetune.val_epoch import val_epoch
@@ -216,7 +216,8 @@ def main_worker(gpu, ngpus_per_node,args):
                                   log_writer=log_writer, args=args)
         log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
                         'epoch': epoch,}
-        write_log(log_dir,"train",log_stats)
+        if is_main_process():
+            write_log(log_dir,"train",log_stats)
         val_stats = val_epoch(model, data_loader_val, device, epoch,
                               log_writer=log_writer, args=args)
         log_stats_val = {**{f'val_{k}': v for k, v in val_stats.items()},

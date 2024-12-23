@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import time
 
 from ops.Logger import MetricLogger,SmoothedValue
-import finetune.lr_sched as lr_sched
+import model.lr_sched as lr_sched
 from finetune.loss import configure_loss
 from finetune.train_epoch import list_to_device, to_value, \
                     create_image, torch_to_nparray, convert_gray_rgbimage

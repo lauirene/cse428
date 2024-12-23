@@ -222,7 +222,11 @@ HiCFoundation_loop_0.9.bedpe includes the most confident loop calls. You can als
 
 Loop calls from low-coverage Hi-C
 ```
-python3 inference.py --input example/GSE174533_1-C11-CB1.2-C11-CB2.merge.hic --batch_size 4 --resolution 10000 --task 2 --input_row_size 224 --input_col_size 224 --stride 20 --bound 0 --model_path hicfoundation_model/hicfoundation_loop_lc.pth.tar --output hicfoundation_inference/loop_detection_lc/ --gpu "0"
+python3 inference.py --input example/GSE174533_1-C11-CB1.2-C11-CB2.merge.hic \
+--batch_size 4  --resolution 10000 --task 2 --input_row_size 224 \
+--input_col_size 224 --stride 20 --bound 0 \
+--model_path hicfoundation_model/ hicfoundation_loop_lc.pth.tar \
+--output hicfoundation_inference/loop_detection_lc/ --gpu "0"
 ```
 This uses the low-coverage example HSPC in [link](https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE174533&format=file&file=GSE174533%5F1%2DC11%2DCB1%2E2%2DC11%2DCB2%2Emerge%2Ehic)  to run loop calls at low coverage Hi-C. <br>
 The output loop detection is saved in ``hicfoundation_inference/loop_detection_lc/HiCFoundation_loop_0.5.bedpe``. <br>
@@ -442,20 +446,21 @@ You can update the key and code to allow other keys based on your purposes.
 ### 2. Congigure training examples
 To specify the experiment for training and validation, you should use [train_config] and [valid_config] to configure. <br>
 In each line of these files, you can put the [HiC-ID] to indicate the correponding directory should be used to in train or valid. <br>
-You can check the config example [train_config](example/finetune_example/train.txt) and [valid_config](example/finetune_example/val.txt).
+You can check the config example [train_config](example/finetune_example/train.txt) and [valid_config](example/finetune_example/val.txt). <br>
+In the two configs, we only included one directory as illustration. If you have multiple directories, please add multiple lines to the config files.
 
 ### 3. Finetune HiCFoundation for other tasks
 ```
-python3 finetune.py --batch_size [batch_size] --accum_iter [grad_accumulation_steps] 
-    --epochs [epochs] --warmup_epochs [warmup_epochs] --pin_mem 
-    --blr [base_learning_rate] --min_lr [min_learning_rate] --weight_decay [weight_decay] 
-    --layer_decay [layer_decay] --model [model_name] --pretrain [pretrained_model] 
-    --resume [resume_model] --finetune [finetune_mode] --seed [random_seed] 
-    --loss_type [loss_type] --data_path [train_data_path] --train_config [train_config]
-    --valid_config [valid_config] --output [output_directory] --tensorboard [tensorboard] 
-    --world_size [world_size] --dist_url [dist_url] --rank [rank]
-    --input_row_size [input_row_size] --input_col_size [input_col_size] --patch_size [patch_size] 
-    --print_freq [print_freq] --save_freq [save_freq]
+python3 finetune.py --batch_size [batch_size] --accum_iter [grad_accumulation_steps] \
+    --epochs [epochs] --warmup_epochs [warmup_epochs] --pin_mem \
+    --blr [base_learning_rate] --min_lr [min_learning_rate] --weight_decay [weight_decay] \
+    --layer_decay [layer_decay] --model [model_name] --pretrain [pretrained_model] \
+    --resume [resume_model] --finetune [finetune_mode] --seed [random_seed] \
+    --loss_type [loss_type] --data_path [train_data_path] --train_config [train_config] \
+    --valid_config [valid_config] --output [output_directory] --tensorboard [tensorboard] \ 
+    --world_size [world_size] --dist_url [dist_url] --rank [rank] \
+    --input_row_size [input_row_size] --input_col_size [input_col_size] \
+    --patch_size [patch_size] --print_freq [print_freq] --save_freq [save_freq]
 ```
 - `batch_size`: batch size for fine-tuning.
 - `accum_iter`: gradient accumulation steps. The effective batch size is batch_size*accum_iter. <br>
@@ -468,7 +473,7 @@ python3 finetune.py --batch_size [batch_size] --accum_iter [grad_accumulation_st
 - `min_lr`: lower lr bound for learning rate decay during fine-tuning. Default: 0.
 - `weight_decay`: weight decay for fine-tuning. Default: 0.05.
 - `layer_decay`: layer-wise lr decay during fine-tuning. Default: 0.75. 
-- `model`: model name for fine-tuning. Default: 'vit_large_patch16_dynamicsize'.
+- `model`: model name for fine-tuning. Default: 'vit_large_patch16'.
 - `pretrain`: load pre-trained model for fine-tuning. Default: 'hicfoundation_model/hicfoundation_pretrain.pth.tar'.
 - `resume`: resume fine-tuning from a checkpoint. Default: ''. This is used to resume training and automatically load from the checkpoint.
 - `finetune`: fine-tune mode: 1: only fine-tune the model's encoder; 2: fine-tune the whole model.
@@ -504,7 +509,7 @@ You can use ``tensorboard --logdir="tensorboard" --port 10000`` to track the fin
 python3 finetune.py --batch_size 4 --accum_iter 4 \
     --epochs 50 --warmup_epochs 5 --pin_mem \
     --blr 1e-3 --min_lr 1e-7 --weight_decay 0.05 \
-    --layer_decay 0.75 --model vit_large_patch16_dynamicsize \
+    --layer_decay 0.75 --model vit_large_patch16 \
     --pretrain hicfoundation_model/hicfoundation_pretrain.pth.tar \
     --finetune 1 --seed 888 \
     --loss_type 1 --data_path "example/finetune_example" \
@@ -550,16 +555,95 @@ The dict is in the following format.
 ```
 "input": the input Hi-C sub-matrix in scipy.sparse or numpy.array format, shape: (M,N);
 "input_count": the total count of corresponding Hi-C expriment, should be a float scalar value (Optional).
+"diag": the diagonal starting index for the input Hi-C matrix (Optional); 
+    If it is smaller than 0, it indicates the diagonal starts at (diag,0) position; 
+    If it is larger than 0, it indicates the diagonal starts at (0,diag) position; 
+    If its absolute value is larger than the matrix size, it indicates no diagonal info here. 
+    You can also specify "diag" as None or do not include this info to indicate no diag to consider here
 ```
-For ``input``, please make sure also save the **down diagonal region values** if you used scipy.sparse array format. <br>
+For ``input``, please make sure also save the **full matrix**(that includes down diagonal region values) if you used scipy.sparse array format. <br>
 The example .pkl can be accessed under [pretrain_example](example/pretrain_example/train/). <br>
 
 ### 2. Congigure training examples
 To specify the experiment for training and validation, you should use [train_config] and [valid_config] to configure. <br>
 In each line of these files, you can put the [HiC-ID] to indicate the correponding directory should be used to in train or valid. <br>
-You can check the config example [train_config](example/pretrain_example/train.txt) and [valid_config](example/pretrain_example/val.txt).
+You can check the config example [train_config](example/pretrain_example/train.txt) and [valid_config](example/pretrain_example/val.txt). <br>
+In the two configs, we only included one directory as illustration. If you have multiple directories, please add multiple lines to the config files.
 
 ### 3. Pretrain Foundation model with your own data
+```
+python3 pretrain.py --batch_size [batch_size] --accum_iter [grad_accumulation_steps] \
+    --epochs [epochs] --warmup_epochs [warmup_epochs] --pin_mem \
+    --mask_ratio [input_mask_ratio] --sparsity_ratio [sparsity_filter_threshold] \
+    --blr [base_learning_rate] --min_lr [min_learning_rate] --weight_decay [weight_decay] \
+    --model [model_name] --loss_alpha [loss_coefficient] \
+    --resume [resume_model] --seed [random_seed] \
+    --data_path [train_data_path] --train_config [train_config] \
+    --valid_config [valid_config] --output [output_directory] --tensorboard [tensorboard] \ 
+    --world_size [world_size] --dist_url [dist_url] --rank [rank] \
+    --input_row_size [input_row_size] --input_col_size [input_col_size] \
+    --patch_size [patch_size] --print_freq [print_freq] --save_freq [save_freq] 
+```
+- `batch_size`: batch size for pre-training.
+- `accum_iter`: gradient accumulation steps. The effective batch size is batch_size*accum_iter. <br>
+    If you have memory constraints, you can increase --accum_iter and reduce the --batch_size to trade off memory for computation. 
+    For pre-training, the recommended actual batch_size should be >=1024.
+- `epochs`: number of epochs for pre-traiing. Default: 100. 
+    The performance will increase with more epochs, but 50 should be enough to have very good performances.
+- `warmup_epochs`: number of warmup epochs for pre-traiing. Default: 10. The learning rate will increase linearly from 0 to the base learning rate in the warmup_epochs.
+- `pin_mem`: Pin CPU memory in DataLoader for more efficient (sometimes) transfer to GPU.
+- `mask_ratio`: masking ratio (percentage of removed patches) for input, applied to input to enforce model to do reconstruction. Default: 0.75.
+- `sparsity_ratio`: used to skip the submatrix if the valid contact is less than sparsity_ratio*region_size. Default: 0.05. 
+- `blr`: base learning rate. The absolute learning rate is calculated as: absolute_lr = base_lr * total_batch_size / 256. Default: 1.5e-4.
+- `min_lr`: lower lr bound for learning rate decay during pre-training. Default: 0.
+- `weight_decay`: weight decay for pre-training. Default: 0.05.
+- `model`: model name for pre-training. Default: 'vit_large_patch16'.
+- `loss_alpha`: loss weight for other losses to combine with the patch-contrastive loss
+- `resume`: resume pre-training from a checkpoint. Default: ''. This is used to resume training and automatically load from the checkpoint.
+- `seed`: random seed for pre-training. It is used to make sure results are reproducible. Default: 888.
+- `data_path`: a directory contains many sub-directory, each sub-dir includes many .pkl files for pre-traiing. 
+  The .pkl file should record a dict with following keys for pre-training:
+  - "input": the input Hi-C sub-matrix in scipy.sparse or numpy.array format, shape: (M,N);
+  - "input_count": the total count of corresponding Hi-C expriment, should be a float scalar value (Optional).
+  - "diag": the diagonal starting index for the input Hi-C matrix (Optional); 
+    - If it is smaller than 0, it indicates the diagonal starts at (diag,0) position; 
+    - If it is larger than 0, it indicates the diagonal starts at (0,diag) position; 
+    - If its absolute value is larger than the matrix size, it indicates no diagonal info here. 
+      You can also specify "diag" as None or do not include this info to indicate no diag to consider here
+- `train_config`: a .txt file records the training information for input directory. Each line should be the sub-dir name that will be used to train during pre-traiing.
+- `valid_config`: a .txt file records the validation information for input directory. Each line should be the sub-dir name that will be used to validate during pre-traiing.
+- `output`: output directory to save the results. The output directory will contain the fine-tuned model, log files, and tensorboard logs. Default: 'hicfoundation_finetune'.
+- `tensorboard`: enable tensorboard log for pre-traiing. Default: 0.
+- `world_size`: number of servers to use for pre-traiing iterations. Default: 1.
+- `dist_url`: url used to set up distributed training. Default: 'tcp://localhost:10001'.
+- `rank`: specify the rank of the server (modified for multi-node training), default 0.
+- `input_row_size`: input row size. Must be a multiple of patch_size. Default: 224.
+- `input_col_size`: input col size. Must be a multiple of patch_size. Default: 224.
+- `patch_size`: patch size for input token. Default: 16.
+- `print_freq`: print frequency. Default: 1.
+- `save_freq`: save frequency. Default: 1.
+<br>
+The output is saved in the [output] directory, where the model is saved under ``model`` subdir, the log info is saved under ``log`` subdir, and the tensorboard is saved in ``tensorboard``. <br>
+The best model is saved as model_best.pth.tar, which is selected by validation loss. You can modify it based on your expertise when pre-trained on other data. <br>
+You can use ``tensorboard --logdir="tensorboard" --port 10000`` to track the pre-training status from the tensorboard monitor webpage from browser.
 
+#### Example command
+```
+python3 pretrain.py --batch_size 4 --accum_iter 4 \
+    --epochs 100 --warmup_epochs 10 --pin_mem \
+    --mask_ratio 0.75 --sparsity_ratio 0.05 \
+    --blr 1.5e-4 --min_lr 1e-7 --weight_decay 0.05 \
+    --model "vit_large_patch16" --loss_alpha 1 --seed 888 \
+    --data_path "example/pretrain_example/" --train_config "example/pretrain_example/train.txt" \
+    --valid_config "example/pretrain_example/val.txt" --output "hicfoundation_pretrain" \
+    --tensorboard 1 --world_size 1 --dist_url "tcp://localhost:10001" --rank 0 \
+    --input_row_size 64 --input_col_size 96 --patch_size 16 \
+    --print_freq 1 --save_freq 1
+```
+The output is saved in ``hicfoundation_finetune`` directory, where the model is saved under ``model`` subdir, the log info is saved under ``log`` subdir, and the tensorboard is saved in ``tensorboard``. <br>
+The best model is saved as model_best.pth.tar, which is selected by validation loss. You can modify it based on your expertise when pre-trained on other data. <br>
+
+### 4. Fine-tuning for different tasks
+Please see the instructions in [Fine-tuning section](#Fine-tuning-HiCFoundation-for-new-tasks) to finetune your pre-trained model for different downstream tasks.
 
 </details>

@@ -19,7 +19,7 @@ def argparser_infer():
                         help='scanning stride for the input Hi-C matrix')
     parser.add_argument("--bound",default=200,type=int,help="off-diagonal bound for the scanning")
     parser.add_argument('--num_workers', default=8, type=int,help="data loading workers per GPU")
-    parser.add_argument('--model', default='vit_large_patch16_dynamicsize', type=str, metavar='MODEL',
+    parser.add_argument('--model', default='vit_large_patch16', type=str, metavar='MODEL',
                         help='Name of model to train')
     parser.add_argument("--model_path",default='',help='load fine-tuned model for inference')
     parser.add_argument('--output', default='hicfoundation_inference',help='output directory to save the results')
@@ -62,7 +62,7 @@ def argparser_finetune():
                         help='layer-wise lr decay during fine-tuning')
     
     # configure the fine-tuning model settings
-    parser.add_argument("--model",default='vit_large_patch16_dynamicsize',
+    parser.add_argument("--model",default='vit_large_patch16',
                         type=str,help="model name for fine-tuning")
     parser.add_argument("--pretrain",default='',type=str, help='load pre-trained model for fine-tuning')
     #add resume to support resuming training from a checkpoint
@@ -139,7 +139,7 @@ def  argparser_pretrain():
                         help='Masking ratio (percentage of removed patches).')
     parser.add_argument("--sparsity_ratio",default=0.05,type=float,
                         help="Used to the submatrix if the valid contact is less than sparsity_ratio*region_size")
-    parser.add_argument("--loss_alpha",default=1,type=float,help="loss weight for the patch-contrastive loss")
+    parser.add_argument("--loss_alpha",default=1,type=float,help="loss weight for other losses to combine with the patch-contrastive loss")
     
     # configure optimizer settings
     parser.add_argument("--lr",default=None,type=float,help="learning rate for fine-tuning. This should not be set, \n \
@@ -149,23 +149,25 @@ def  argparser_pretrain():
     parser.add_argument('--min_lr', type=float, default=0., metavar='LR',
                         help='lower lr bound for learning rate decay during fine-tuning.')
     parser.add_argument("--weight_decay",default=0.05,type=float,help="weight decay for fine-tuning")
-    parser.add_argument('--layer_decay', type=float, default=0.75,
-                        help='layer-wise lr decay during fine-tuning')
+
     
     # configure the fine-tuning model settings
-    parser.add_argument("--model",default='vit_large_patch16_dynamicsize',
+    parser.add_argument("--model",default='vit_large_patch16',
                         type=str,help="model name for fine-tuning")
     #add resume to support resuming training from a checkpoint
     parser.add_argument("--resume",default='',type=str,help='resume fine-tuning from a checkpoint')
     parser.add_argument('--seed', default=888, type=int,help="random seed for fine-tuning. It is used to make sure results are reproducible.")
-    #configure loss type
-    parser.add_argument("--loss_type",default=0,type=int,help="1: Contrastive-patch loss+SSIM loss; \n You can define your own loss function in pretrain/loss.py")
-
+    
     # Dataset parameters
     parser.add_argument('--data_path', type=str, help='a directory contains many sub-directory, each sub-dir includes many .pkl files for pre-training. \n \
                         The .pkl file should record a dict with following keys refer to different fine-tuning purposes\n \
                         "input": the input Hi-C/scHi-C matrix in scipy.sparse or numpy.array format; \n \
-                        "input_count": the total count of corresponding Hi-C expriment (optional); ')
+                        "input_count": the total count of corresponding Hi-C expriment (optional); \n \
+                        "diag": the diagonal starting index for the input Hi-C matrix; \n \
+                        If it is smaller than 0, it indicates the diagonal starts at (diag,0) position; \n \
+                        If it is larger than 0, it indicates the diagonal starts at (0,diag) position; \n \
+                        If its absolute value is larger than the matrix size, it indicates no diagonal info here. \n \
+                        You can also specify "diag" as None or do not include this info to indicate no diag to consider here ')
     parser.add_argument("--train_config",type=str,help="a .txt file records the training information for input directory. \n \
                         Each line should be the sub-dir name that will be used to train during fine-tuning. \n ")
     parser.add_argument("--valid_config",type=str,help="a .txt file records the validation information for input directory. \n \
