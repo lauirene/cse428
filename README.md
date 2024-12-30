@@ -78,18 +78,47 @@ git clone https://github.com/Noble-Lab/HiCFoundation.git && cd HiCFoundation
 ```
 
 ### 3. Configure environment for HiCFoundation.
+#### Option 1: install by conda
 ##### 3.1 Install anaconda
 Install anaconda from https://www.anaconda.com/download#downloads.
 ##### 3.2 Install environment via yml file
-```bash
+```
 conda env create -f environment.yml
 ```
+If it failed because pytorch imcompatible with cuda, please run 
+```
+conda env create -f environment_notorch.yml
+```
+
 ##### 3.3 Activate environment for running
 Each time when you want to run HiCFoundation, simply activate the environment by
-```bash
+```
 conda activate HiCFoundation
-# To exit
+```
+If you encounter the pytorch imcompatible with cuda, please check [pytorch_site](https://pytorch.org/get-started/previous-versions/) to select ``pytorch=1.8.1`` version that is compatible with your cuda version. <br>
+You can check the cuda version of your server with ``nvidia-smi`` or ``nvcc -V`` to check your cuda version.
+Then you can run the recommended installation command from the website in this environment.
+After this, please run following command to configure timm
+```
+pip install timm==0.3.2
+```
+<br>
+You can leave the environment by
+```
 conda deactivate
+```
+
+#### Option 2: install by pip
+##### 3.1 [install pip](https://pip.pypa.io/en/stable/installing)
+##### 3.2 install pytorch
+Please check [pytorch_site](https://pytorch.org/get-started/previous-versions/) to select ``pytorch=1.8.1`` version that is compatible with your cuda version. <br>
+You can check the cuda version of your server with ``nvidia-smi`` or ``nvcc -V`` to check your cuda version.
+Then you can run the recommended installation command from the website in this environment.
+
+##### 3.3 install other packages
+Please run the following command to configure other packages
+```
+pip3 install -r requirements.txt --user
 ```
 
 ### 4. Download the trained HiCFoundation model
