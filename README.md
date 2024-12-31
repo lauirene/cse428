@@ -97,7 +97,7 @@ conda activate HiCFoundation
 ```
 If you encounter the pytorch imcompatible with cuda, please check [pytorch_site](https://pytorch.org/get-started/previous-versions/) to select ``pytorch=1.8.1`` version that is compatible with your cuda version. <br>
 You can check the cuda version of your server with ``nvidia-smi`` or ``nvcc -V`` to check your cuda version.
-Then you can run the recommended installation command from the website in this environment.
+Then you can run the recommended installation command from the website in this environment (recommend ``pip`` command).
 After this, please run following command to configure timm
 ```
 pip install timm==0.3.2
@@ -113,7 +113,7 @@ conda deactivate
 ##### 3.2 install pytorch
 Please check [pytorch_site](https://pytorch.org/get-started/previous-versions/) to select ``pytorch=1.8.1`` version that is compatible with your cuda version. <br>
 You can check the cuda version of your server with ``nvidia-smi`` or ``nvcc -V`` to check your cuda version.
-Then you can run the recommended installation command from the website in this environment.
+Then you can run the recommended installation command (recommend ``pip`` command) from the website in this environment.
 
 ##### 3.3 install other packages
 Please run the following command to configure other packages
