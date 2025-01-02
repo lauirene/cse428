@@ -14,3 +14,4 @@ tensorboard
 cooler
 numba
 pyBigWig
+timm==0.3.2
