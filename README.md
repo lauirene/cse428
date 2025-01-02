@@ -53,7 +53,8 @@ HiCFoundation thus provides a unified, efficient, generalizable, and interpretab
 1) Pre-training stage: the model is trained in a self-supervised fashion on massive quantities of unlabeled Hi-C data. 
 The model takes masked Hi-C submatrices as input, optimizing for the reconstruction of the full submatrix.
 <br>
-2) Fine-tuning stage: the model is fine-tuned and tested for diverse downstream tasks, including integrative Hi-C analysis, multi-omics analysis, and single-cell analysis.
+2) Fine-tuning stage: the model is fine-tuned and tested for diverse downstream applications,
+ including genome architecture analysis, multi-species analysis, neutrophil differentiation analysis, multi-omics analysis and single-cell analysis.
 
 <p align="center">
   <img src="imgs/framework_github.png" alt="HiCFoundation framework" width="80%">
