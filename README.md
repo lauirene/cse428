@@ -56,7 +56,7 @@ The model takes masked Hi-C submatrices as input, optimizing for the reconstruct
 2) Fine-tuning stage: the model is fine-tuned and tested for diverse downstream tasks, including integrative Hi-C analysis, multi-omics analysis, and single-cell analysis.
 
 <p align="center">
-  <img src="imgs/github_v2.png" alt="HiCFoundation framework" width="80%">
+  <img src="imgs/framework_github.png" alt="HiCFoundation framework" width="80%">
 </p>
 </details>
 
