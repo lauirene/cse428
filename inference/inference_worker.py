@@ -149,19 +149,19 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
                 patch_col_range = (real_col_end-real_col_start)//args.patch_size
                 # cur_output = cur_output[:patch_row_range,:patch_col_range]
                 # we can let the patch embedding choice.
-                
-                for row_index in range(real_row_start,real_row_end, args.patch_size):
-                    for col_index in range(real_col_start,real_col_end,args.patch_size):
-                        row_index = int(row_index)
-                        col_index = int(col_index)
-                        patch_row_index = (row_index-real_row_start)//args.patch_size
-                        patch_col_index = (col_index-real_col_start)//args.patch_size
-                        cur_patch_embedding = cur_output[patch_row_index,patch_col_index]
-                        middle_row = row_index+args.patch_size//2
-                        middle_col = col_index+args.patch_size//2
-                        search_key = f"{chr}:{middle_row*config_resolution},{middle_col*config_resolution}"
-                        output_dict["patch_embedding"][search_key].append(cur_patch_embedding)
-                        
+                if args.patch_embedding:
+                    for row_index in range(real_row_start,real_row_end, args.patch_size):
+                        for col_index in range(real_col_start,real_col_end,args.patch_size):
+                            row_index = int(row_index)
+                            col_index = int(col_index)
+                            patch_row_index = (row_index-real_row_start)//args.patch_size
+                            patch_col_index = (col_index-real_col_start)//args.patch_size
+                            cur_patch_embedding = cur_output[patch_row_index,patch_col_index]
+                            middle_row = row_index+args.patch_size//2
+                            middle_col = col_index+args.patch_size//2
+                            search_key = f"{chr}:{middle_row*config_resolution},{middle_col*config_resolution}"
+                            output_dict["patch_embedding"][search_key].append(cur_patch_embedding)
+                            
                 search_key = f"{chr}:{refer_row*config_resolution},{refer_col*config_resolution}"
                 #average embedding
                 all_embedding = cur_output.reshape(-1,cur_output.shape[-1])

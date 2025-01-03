@@ -422,7 +422,7 @@ python3 inference.py --input [input_file] --batch_size [infer_batch_size] --reso
 <br>
 The output is saved in the ``output_dir``, where the embeddings are saved in the HiCFoundation_embedding.pkl.  <br>
 It is a dict format that includes four keys that correspond to four level of embeddings:
-- "patch_embedding": corresponds to patch-level embeddings. Here it keeps a dict with "chrom:pos1,pos2" as the key, and the HiCFoundation embedding as the value.  "chrom:pos1,pos2" indicates the center of corresponding patch at ``chrom``, with row at ``pos1``, and col at ``pos2``.
+- "patch_embedding": corresponds to patch-level embeddings. Here it keeps a dict with "chrom:pos1,pos2" as the key, and the HiCFoundation embedding as the value.  "chrom:pos1,pos2" indicates the center of corresponding patch at ``chrom``, with row at ``pos1``, and col at ``pos2``. This will not be saved by default because of the RAM constraint of most machines ($<$64GB), please add ``--patch_embedding`` in command line if you wanted to also have this embedding.
 - "submat_embedding": corresponds to the submatrix-level embedding. The submatrix size is defined by the input param ``input_row_size`` and ``input_col_size``. Here it keeps a dict with "chrom:pos1,pos2" as the key, and the HiCFoundation embedding as the value.  "chrom:pos1,pos2" indicates the center of corresponding patch at ``chrom``, with row at ``pos1``, and col at ``pos2``.
 - "chromo_embedding":  corresponds to the chromosome-level embedding. Here it keeps a dict with "chrom" as the key, and the HiCFoundation embedding of the correpsonding "chrom" as the value.
 - "genome_embedding": corresponds to the genome-level embedding of the input Hi-C. Here it keeps an embedding vector as the value of "genome_embedding".
@@ -436,7 +436,8 @@ python3 inference.py --input example/4DNFITUOMFUQ.hic --batch_size 4 --resolutio
 ```
 This uses the example ``4DNFITUOMFUQ.hic`` to run the inference with the submatrix size of 400*400 of 6Mb off-diagonal regions. <br>
 The output Hi-C embedding is saved in ``hicfoundation_inference/hicfoundation_embedding/HiCFoundation_embedding.pkl`` in a dict format.  <br>
-It our level of embeddings: patch level embdding, submatrix level embedding, chromosome level embedding, and genome wide embedding. See more details above.
+It our level of embeddings: patch level embdding, submatrix level embedding, chromosome level embedding, and genome wide embedding. See more details above. <br>
+Patch level embdding will not be saved by default because of the RAM constraint of most machines ($<$64GB), please add ``--patch_embedding`` in command line if you wanted to also have this embedding.
 
 </details>
 
