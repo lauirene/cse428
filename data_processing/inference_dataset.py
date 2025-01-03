@@ -122,6 +122,8 @@ class Inference_Dataset(torch.utils.data.Dataset):
                 half_window_width = self.window_width//2
                 for i in range(0,row_size,stride):
                     for j in range(0,col_size,stride):
+                        if abs(i-j)>bounding:
+                            continue
                         cur_row = max(0,i-half_window_height)
                         cur_row_end = min(row_size,i+half_window_height)
                         cur_col = max(0,j-half_window_width)
