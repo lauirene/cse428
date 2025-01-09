@@ -181,7 +181,6 @@ def inference_worker(model,data_loader,log_dir=None,args=None):
                     output_dict[chr]['mean'] += cur_output
                     output_dict[chr]['count'] += 1
                 else:
-                    cur_output = cur_output[row_start:row_start+args.input_row_size, col_start:col_start+args.input_col_size]
                     output_dict[chr]['mean'][row_start:row_start+args.input_row_size, col_start:col_start+args.input_col_size] += cur_output
                     output_dict[chr]['count'][row_start:row_start+args.input_row_size, col_start:col_start+args.input_col_size] += 1
                 # cur_output = array_to_coo(cur_output)

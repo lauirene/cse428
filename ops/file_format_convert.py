@@ -135,7 +135,8 @@ def pkl2others(input_pkl, output_file,config_resolution,genome_id):
             print("The format is dict in format of [chr]:[scipy.sparse.coo_matrix]")
             return
         current_array = data[list(data.keys())[0]]
-        current_array = current_array.toarray()
+        if isinstance(current_array,coo_matrix):
+            current_array = current_array.toarray()
         np.save(output_file,current_array)
     elif output_file.endswith('.hic'):
         #https://github.com/aidenlab/juicer/wiki/Pre
