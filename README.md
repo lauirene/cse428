@@ -29,6 +29,10 @@ Xiao Wang, Yuanyuan Zhang, Suhita Ray, Anupama Jha, Tangqi Fang, Shengqi Hang, S
 }   
 ```
 
+## Online Server: [Colab Notebook](https://colab.research.google.com/github/Noble-Lab/HiCFoundation/blob/main/HiCFoundation.ipynb) 
+
+The colab is private between you and Google, developers can not see your data, so privacy is guaranteed. After your running, all the data will also be cleaned from Google colab server.
+
 ## Introduction
 
 <details>
