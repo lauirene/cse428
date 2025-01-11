@@ -474,7 +474,7 @@ The last three keys are optional, you can adjust it based on your fine-tuning pu
 The example .pkl can be accessed under [finetune_example](example/finetune_example/train/). <br>
 You can update the key and code to allow other keys based on your purposes.
 
-### 2. Congigure training examples
+### 2. Configure training examples
 To specify the experiment for training and validation, you should use [train_config] and [valid_config] to configure. <br>
 In each line of these files, you can put the [HiC-ID] to indicate the correponding directory should be used to in train or valid. <br>
 You can check the config example [train_config](example/finetune_example/train.txt) and [valid_config](example/finetune_example/val.txt). <br>
@@ -597,7 +597,7 @@ The dict is in the following format.
 For ``input``, please make sure also save the **full matrix**(that includes down diagonal region values) if you used scipy.sparse array format. <br>
 The example .pkl can be accessed under [pretrain_example](example/pretrain_example/train/). <br>
 
-### 2. Congigure training examples
+### 2. Configure training examples
 To specify the experiment for training and validation, you should use [train_config] and [valid_config] to configure. <br>
 In each line of these files, you can put the [HiC-ID] to indicate the correponding directory should be used to in train or valid. <br>
 You can check the config example [train_config](example/pretrain_example/train.txt) and [valid_config](example/pretrain_example/val.txt). <br>
