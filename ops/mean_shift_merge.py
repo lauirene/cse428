@@ -143,6 +143,8 @@ def mean_shift_merge(predict_array,cutoff=0.1):
     
     new_location, new_density = carry_shift(location, count_loc, fmaxd, fsiv,
                                             tmp_xdim, tmp_ydim, predict_array)
+    if len(new_location)==0 or len(new_density)==0:
+        return []
     dmin = np.min(new_density)
     dmax = np.max(new_density)
     drange = dmax - dmin

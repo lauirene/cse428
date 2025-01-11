@@ -95,10 +95,10 @@ def generate_loop(return_dict,threshold,output_bedpe,config_resolution):
                 cur_size = cur_end-cur_start
                 cur_array = coo_matrix((cur_select_data,(cur_select_row,cur_select_col)),shape=(cur_size,cur_size))
                 cur_array = cur_array.toarray()
-                #try:
-                cur_loc_list = mean_shift_merge(cur_array,cutoff=threshold)
-                #except:
-                #    cur_loc_list = []
+                try:
+                    cur_loc_list = mean_shift_merge(cur_array,cutoff=threshold)
+                except:
+                   cur_loc_list = []
                 for loc in cur_loc_list:
                     x,y = loc
                     x+=cur_start
