@@ -497,8 +497,8 @@ python3 finetune.py --batch_size [batch_size] --accum_iter [grad_accumulation_st
     --input_row_size [input_row_size] --input_col_size [input_col_size] \
     --patch_size [patch_size] --print_freq [print_freq] --save_freq [save_freq]
 ```
-- `batch_size`: batch size per GPU for fine-tuning.
-- `accum_iter`: gradient accumulation steps. The effective batch size is batch_size*accum_iter*num_GPU. <br>
+- `batch_size`: batch size per GPU for fine-tuning. 
+- `accum_iter`: gradient accumulation steps. The effective batch size is batch_size*accum_iter*num_GPU. We recommend at least 256 for stable and reliable training. <br>
     If you have memory constraints, you can increase --accum_iter and reduce the --batch_size to trade off memory for computation. 
 - `epochs`: number of epochs for fine-tuning. Default: 50. 
     The performance will increase with more epochs, but 50 should be enough to have very good performances.
@@ -542,7 +542,7 @@ Please make sure you include at least **batch_size*num_gpu** examples in the tra
 
 #### Example command
 ```
-python3 finetune.py --batch_size 1 --accum_iter 4 \
+python3 finetune.py --batch_size 128 --accum_iter 4 \
     --epochs 50 --warmup_epochs 5 --pin_mem \
     --blr 1e-3 --min_lr 1e-7 --weight_decay 0.05 \
     --layer_decay 0.75 --model vit_large_patch16 \
