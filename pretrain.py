@@ -38,7 +38,7 @@ if __name__ == '__main__':
     use_cuda = torch.cuda.is_available()
     print("starting check cuda status",use_cuda)
     #assert cuda is available
-    assert use_cuda == True, "CUDA is not available, fine-tuning requires CUDA support to run!"
+    assert use_cuda == True, "CUDA is not available, pre-training requires CUDA support to run!"
     parser = argparser_pretrain()
     args = parser.parse_args()
     #If you have many GPU on your server, but you only want to use few of them

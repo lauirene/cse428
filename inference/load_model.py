@@ -89,7 +89,7 @@ def convert_rgb(data_log,max_value):
     data_red = torch.ones(data_log.shape)
     data_log1 = (max_value-data_log)/max_value
     data_rgb = torch.cat([data_red,data_log1,data_log1],dim=0)
-    data_rgb = data_rgb.transpose(1,2,0)#transform only accept channel last case
+    data_rgb = data_rgb.permute(1,2,0)#transform only accept channel last case
     return data_rgb
 
 def format_input(input):
