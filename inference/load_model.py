@@ -35,7 +35,7 @@ def load_model(model_path,input_row_size,input_col_size):
                                             use_decoder=False)
     # load pre-trained model
     msg = vit_backbone.load_state_dict(checkpoint_model, strict=False)
-    print("Loading pre-train encoder message:",msg)
+    print("Loading pre-train encoder message!")
 
     from model.Finetune_Model_Head import Finetune_Model_Head
     model = Finetune_Model_Head(vit_backbone, task=task,
@@ -47,7 +47,7 @@ def load_model(model_path,input_row_size,input_col_size):
     interpolate_pos_embed_inputsize(model, checkpoint['model'],
                                     input_size=patch_wise_size,use_decoder=True)
     msg = model.load_state_dict(checkpoint_model, strict=False)
-    print("Loading pre-train model decoder message:",msg)
+    print("Loading pre-train model decoder!")
     return model # return the loaded model
 
 def to_cuda(x):
@@ -62,6 +62,9 @@ def to_cuda(x):
     """
     import torch
     if x is not None:
+        #if it is float or int, change to tensor
+        if type(x) is not torch.Tensor:
+            x = torch.tensor(x)
         return x.cuda()
     else:
         return None
