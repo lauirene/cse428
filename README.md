@@ -698,7 +698,7 @@ from inference.load_model import load_model,to_cuda,to_float,format_input
 
 #configure input
 model_path="hicfoundation_model/hicfoundation_pretrain.pth.tar" # specify the path of pre-trained model on your directory
-input_row_size=4000 # specify the input matrix row size, should be a multiply of 16 (patch_size of HiCFoundation)
+input_row_size=1000 # specify the input matrix row size, should be a multiply of 16 (patch_size of HiCFoundation)
 input_col_size=128 # specify the input matrix column size, should be a multiply of 16 (patch_size of HiCFoundation)
 total_count = 100000000 # the total read of your HiC matrix. 
 embed_depth=0 # Specified the embedding to use for your purpose, default: 0 (encoder output embeddings). 
@@ -723,11 +723,16 @@ total_count=to_float(total_count)
 model=to_float(model)
 
 #inference of HiCFoundation
+input_mat = input_mat.unsqueeze(0) #add batch dimension
+
+total_count = total_count.unsqueeze(0) if total_count is not None else None #add batch dimension
+
 output = model(input_mat,total_count)
 output = output[embed_depth] #fetch the interested embedding
-#output shape (1,input_row_size/16,input_col_size/16, embedding_dim)
+output = output.squeeze(0) #remove batch dimension
+#output shape (input_row_size/16,input_col_size/16, embedding_dim)
 #you can get any interested patch embedding in this tensor
-mat_embedding = output[0].reshape(-1,output.shape[-1]).mean(dim=0) # (embedding_dim), The embedding dim of encoder is 1024, of decoder is 512.
+mat_embedding = output.reshape(-1,output.shape[-1]).mean(dim=0) # (embedding_dim), The embedding dim of encoder is 1024, of decoder is 512.
 
 ```
 
