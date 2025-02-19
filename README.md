@@ -686,3 +686,50 @@ Please make sure you include at least **batch_size*num_gpu** examples in the tra
 Please see the instructions in [Fine-tuning section](#Fine-tuning-HiCFoundation-for-new-tasks) to finetune your pre-trained model for different downstream tasks.
 
 </details>
+
+## API for embedding
+
+<details>
+<summary>API for generating embedding for any specified array</summary>
+
+```python
+import torch
+from inference.load_model import load_model,to_cuda,to_float,format_input
+
+#configure input
+model_path="hicfoundation_model/hicfoundation_pretrain.pth.tar" # specify the path of pre-trained model on your directory
+input_row_size=4000 # specify the input matrix row size, should be a multiply of 16 (patch_size of HiCFoundation)
+input_col_size=128 # specify the input matrix column size, should be a multiply of 16 (patch_size of HiCFoundation)
+total_count = 100000000 # the total read of your HiC matrix. 
+embed_depth=0 # Specified the embedding to use for your purpose, default: 0 (encoder output embeddings). 
+#You can also specify ``k`` from 1 to 8 to indicate the output of k-th layer of decoder.
+
+#total_count = None, If not sure, set to None
+max_rand= total_count if total_count is not None else 100000000 
+input_mat = torch.randint(0, max_rand, (input_row_size,input_col_size)) # specify the input size, random integer array with value randomly sampled from 0 to max_rand, with the size of (input_row_size,input_col_size).
+input_mat = format_input(input_mat)
+
+#load model
+model = load_model(model_path,input_row_size,input_col_size)
+
+#load to cuda, if you do not have gpu, you can comment the following line
+input_mat=to_cuda(input_mat)
+total_count=to_cuda(total_count)
+model=to_cuda(model)
+
+#convert to float to do computation
+input_mat=to_float(input_mat)
+total_count=to_float(total_count)
+model=to_float(model)
+
+#inference of HiCFoundation
+output = model(input_mat,total_count)
+output = output[embed_depth] #fetch the interested embedding
+#output shape (1,input_row_size/16,input_col_size/16, embedding_dim)
+#you can get any interested patch embedding in this tensor
+mat_embedding = output[0].reshape(-1,output.shape[-1]).mean(dim=0) # (embedding_dim), The embedding dim of encoder is 1024, of decoder is 512.
+
+```
+
+
+</details>

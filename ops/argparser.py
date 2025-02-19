@@ -153,9 +153,9 @@ def  argparser_pretrain():
     parser.add_argument("--weight_decay",default=0.05,type=float,help="weight decay for fine-tuning")
 
     
-    # configure the fine-tuning model settings
+    # configure the pre-training model settings
     parser.add_argument("--model",default='vit_large_patch16',
-                        type=str,help="model name for fine-tuning")
+                        type=str,help="model name for pre-training")
     #add resume to support resuming training from a checkpoint
     parser.add_argument("--resume",default='',type=str,help='resume fine-tuning from a checkpoint')
     parser.add_argument('--seed', default=888, type=int,help="random seed for fine-tuning. It is used to make sure results are reproducible.")
