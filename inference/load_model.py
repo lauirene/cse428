@@ -105,7 +105,6 @@ def format_input(input):
     import torch
     import torchvision.transforms as transforms
     transform_input = transforms.Compose([
-            transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
     
     input = torch.nan_to_num(input)
