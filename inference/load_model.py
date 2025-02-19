@@ -63,7 +63,7 @@ def to_cuda(x):
     import torch
     if x is not None:
         #if it is float or int, change to tensor
-        if type(x) is not torch.Tensor:
+        if type(x) is int or type(x) is float:
             x = torch.tensor(x)
         return x.cuda()
     else:
