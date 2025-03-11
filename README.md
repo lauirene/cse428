@@ -151,6 +151,9 @@ HiGlass: https://higlass.io/
 
 </details>
 
+## Paper repo
+This [repo](https://github.com/Noble-Lab/HiCFoundation_paper/) includes the step by step instructions about how to pre-train/finetune/inference the experiments our paper has done.
+
 # Usage
 
 ## Inference of fine-tuned HiCFoundation
