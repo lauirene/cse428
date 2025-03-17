@@ -701,8 +701,8 @@ from inference.load_model import load_model,to_cuda,to_float,format_input
 
 #configure input
 model_path="hicfoundation_model/hicfoundation_pretrain.pth.tar" # specify the path of pre-trained model on your directory
-input_row_size=1000 # specify the input matrix row size, should be a multiply of 16 (patch_size of HiCFoundation)
-input_col_size=128 # specify the input matrix column size, should be a multiply of 16 (patch_size of HiCFoundation)
+input_row_size=128 # specify the input matrix row size, should be a multiply of 16 (patch_size of HiCFoundation)
+input_col_size=4000 # specify the input matrix column size, should be a multiply of 16 (patch_size of HiCFoundation)
 total_count = 100000000 # the total read of your HiC matrix. 
 embed_depth=0 # Specified the embedding to use for your purpose, default: 0 (encoder output embeddings). 
 #You can also specify ``k`` from 1 to 8 to indicate the output of k-th layer of decoder.
