@@ -1,6 +1,6 @@
 
 
-def load_model(model_path,input_row_size,input_col_size):
+def load_model(model_path,input_row_size,input_col_size, task=6):
     """
     Load a model from a file.
 
@@ -11,16 +11,23 @@ def load_model(model_path,input_row_size,input_col_size):
 
     Returns:
         model: The loaded model.
+
+    Notes:
+        task 0: fine-tuning setting
+        task 1: reproducibility analysis
+        task 2: loop calling
+        task 3: resolution enhancement
+        task 4: epigenomic assay prediction
+        task 5: scHi-C enhancement
+        task 6: embedding analysis
     """
     import torch
     import model.Vision_Transformer_count as Vision_Transformer
     from model.pos_embed import interpolate_pos_embed_inputsize
     import torch.nn as nn
 
-
     model_name="vit_large_patch16"
     patch_size=16
-    task = 6
 
     patch_wise_size = (input_row_size//patch_size, input_col_size//patch_size)
     vit_backbone = Vision_Transformer.__dict__[model_name](img_size=(input_row_size,input_col_size))
@@ -92,7 +99,6 @@ def convert_rgb(data_log,max_value):
     data_red = torch.ones(data_log.shape)
     data_log1 = (max_value-data_log)/max_value
     data_rgb = torch.cat([data_red,data_log1,data_log1],dim=0)
-    #data_rgb = data_rgb.permute(1,2,0)#transform only accept channel last case
     return data_rgb
 
 def format_input(input):
