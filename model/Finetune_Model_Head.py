@@ -9,6 +9,14 @@ from model.pos_embed import get_2d_sincos_pos_embed,get_2d_sincos_pos_embed_rect
 
 import numpy as np
 from typing import Set
+def unnormalize_image(samples):
+    imagenet_mean = np.array([0.485, 0.456, 0.406])
+    imagenet_std = np.array([0.229, 0.224, 0.225])
+    imagenet_mean = torch.tensor(imagenet_mean,device=samples.device)
+    imagenet_std = torch.tensor(imagenet_std,device=samples.device)
+    new_samples = torch.einsum("bchw,c->bchw",samples,imagenet_std)
+    new_samples = torch.clip((new_samples+ imagenet_mean.unsqueeze(0).unsqueeze(-1).unsqueeze(-1)) * 255, 0, 255)
+    return new_samples
 
 class Finetune_Model_Head(nn.Module):
     """ Masked Autoencoder with VisionTransformer backbone
@@ -224,6 +232,19 @@ class Finetune_Model_Head(nn.Module):
             decoder_output= decoder_output[:,self.num_additional_token:,:]
             pred_image = self.unpatchify_channel(decoder_output,1)
             return pred_image[:,0,:]
+        
+        elif self.task==7:
+            #for pre-train reconstruction visualization only
+            decoder_output = self.forward_decoder(img,
+                                                total_count=total_count)
+            decoder_output = self.decoder_map(decoder_output)
+            # use patch-wise token
+            decoder_output= decoder_output[:,self.num_additional_token:,:]
+            pred_image = self.unpatchify_channel(decoder_output,3)
+            #remove the normatlization
+            pred_image = unnormalize_image(pred_image)
+            return pred_image
+
         
         elif self.task==4:
             #for epigenomic assay prediction
