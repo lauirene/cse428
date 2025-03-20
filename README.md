@@ -746,6 +746,7 @@ mat_embedding = output.reshape(-1,output.shape[-1]).mean(dim=0) # (embedding_dim
 
 <details>
 <summary>API for mask reconstruction visualization</summary>
+	
 ```python
 import os
 import pickle
