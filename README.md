@@ -741,3 +741,69 @@ mat_embedding = output.reshape(-1,output.shape[-1]).mean(dim=0) # (embedding_dim
 
 
 </details>
+
+## API for visualizing mask reconstruction
+
+<details>
+<summary>API for mask reconstruction visualization</summary>
+```python
+import os
+import pickle
+import torch
+import numpy as np
+import matplotlib.pyplot as plt
+
+file_path="ENCFF528JJC.pkl" #You can use https://github.com/Noble-Lab/HiCFoundation_paper/blob/main/utils/hic2array.py to convert any hic to pkl file and get the array format
+data=pickle.load(open(file_path,"rb")) 
+chr1=data['chr1'].toarray()
+input_mat=chr1[10000:10224,10000:10224]  #random pick a region with a 224*224 size, you may also consider other sizes
+input_mat=input_mat+np.triu(input_mat,1).T
+#You can apply patch-wise mask here if you want
+
+input_vis = np.array(input_mat)
+from inference.load_model import load_model,to_cuda,to_float,format_input
+model_path="hicfoundation_model/hicfoundation_pretrain.pth.tar"
+
+input_row_size=input_mat.shape[1]
+input_col_size=input_mat.shape[1]
+total_count = 100000000
+embed_depth=0
+
+model = load_model(model_path, input_row_size, input_col_size, task=7)
+input_mat = torch.tensor(input_mat)
+input_mat = format_input(input_mat)
+input_mat = to_float(input_mat)
+total_count = to_float(torch.tensor(total_count))
+model = to_float(model)
+input_mat = input_mat.unsqueeze(0)
+total_count = total_count.unsqueeze(0) if total_count is not None else None #add batch dimension
+
+output = model(input_mat,total_count)
+
+def convert_rgb(data,max_value):
+	"""
+	The convert_rgb function takes in a 2D array and converts it to a 3D RGB array.
+	:param data: Specify the input 2D array
+	:param max_value: Specify the maximum threshold of the input array for figures
+	:return: A 3D RGB array of size (data.shape[0], data.shape[1], 3)
+	"""
+	data_red = np.ones(data.shape)
+	data = np.minimum(data,max_value)
+	data = (max_value-data)/max_value
+	data_rgb = np.stack([data_red,data,data],axis=0,dtype=np.float32)#transform only accept channel last case
+	data_rgb = data_rgb.transpose(1,2,0)
+	data_rgb = (data_rgb*255).astype(np.uint8)
+	return data_rgb
+reconstruction = output[0,:,:].cpu().detach().numpy()
+reconstruction = reconstruction.astype(np.uint8)
+reconstruction = reconstruction.transpose(1,2,0)#sawp (C,H,W) to (H,W,C)
+fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+axes[0].imshow(convert_rgb(input_vis, 20))
+axes[0].set_title("Input (1000 loci at 5kb)")
+axes[1].imshow(reconstruction)
+axes[1].set_title("Output")
+plt.tight_layout()
+plt.savefig("tmp.png",dpi=600)
+```
+
+</details>
