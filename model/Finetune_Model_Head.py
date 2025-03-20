@@ -32,6 +32,7 @@ class Finetune_Model_Head(nn.Module):
         task 4: epigenomic assay prediction
         task 5: scHi-C enhancement
         task 6: embedding analysis
+        task 7: reconstruction visualization (for pre-training only)
         """
 
         super().__init__()
@@ -78,10 +79,13 @@ class Finetune_Model_Head(nn.Module):
                 map_block = nn.Linear(decoder_embed_dim, output_dim)
                 self.map_blocks.append(map_block)
             self.map_blocks = nn.ModuleList(self.map_blocks)
-        elif self.task==0 or self.task==7:
+        elif self.task==0:
             output_dim = patch_size
             self.decoder_map = nn.Linear(decoder_embed_dim, patch_size**2 * 1, bias=True) #map to 2d
             self.map_block = nn.Linear(decoder_embed_dim, output_dim) # map to 1d
+        elif self.task==7:
+            #for pre-train reconstruction visualization only
+            self.decoder_map = nn.Linear(decoder_embed_dim, patch_size**2 * 3, bias=True)
         self.num_additional_token = 2 # 1 cls token and 1 count token
         self.initialize_weights()
     @torch.jit.ignore
