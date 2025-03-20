@@ -85,7 +85,7 @@ class Finetune_Model_Head(nn.Module):
             self.map_block = nn.Linear(decoder_embed_dim, output_dim) # map to 1d
         elif self.task==7:
             #for pre-train reconstruction visualization only
-            self.decoder_map = nn.Linear(decoder_embed_dim, patch_size**2 * 3, bias=True)
+            self.decoder_pred = nn.Linear(decoder_embed_dim, patch_size**2 * 3, bias=True)
         self.num_additional_token = 2 # 1 cls token and 1 count token
         self.initialize_weights()
     @torch.jit.ignore
@@ -241,7 +241,7 @@ class Finetune_Model_Head(nn.Module):
             #for pre-train reconstruction visualization only
             decoder_output = self.forward_decoder(img,
                                                 total_count=total_count)
-            decoder_output = self.decoder_map(decoder_output)
+            decoder_output = self.decoder_pred(decoder_output)
             # use patch-wise token
             decoder_output= decoder_output[:,self.num_additional_token:,:]
             pred_image = self.unpatchify_channel(decoder_output,3)
