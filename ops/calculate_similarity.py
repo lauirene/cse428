@@ -45,12 +45,13 @@ def calculate_similarity(input1, input2):
         split_chromosome = key.split(":")[0]
         split_loc = key.split(":")[1]
         combine_key = split_chromosome + ":" + split_loc
+        chr = split_chromosome.split("_")[0]
+        chr = chr.replace("chr","")
         if combine_key not in input2.keys():
-            chr = split_chromosome.split("_")[0]
-            chr = chr.replace("chr","")
             combine_key = find_key(chr,split_loc,input2.keys())
             if combine_key is None:
                 continue
+        
         embedding1 = input1[key]
         embedding2 = input2[combine_key]
         # Calculate the similarity between the two embeddings
