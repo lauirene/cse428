@@ -223,6 +223,16 @@ python3 inference.py --input example/ENCFF689CUX.hic --batch_size 4 --resolution
 This uses the low-coverage example ``ENCFF689CUX.hic`` to run the inference. <br>
 The output embedding is saved in ``hicfoundation_inference/reproducibility_analysis/HiCFoundation_reproducibility_embedding.pkl``.
 
+##### Calculating reproducibility score
+After running any interested Hi-C maps to get their embeddings using the above command, you can get the corresponding embeddings in .pkl files. 
+Then you can run the following command to get the reproducibility score
+```
+python3 ops/calculate_similarity.py [input1.pkl] [input2.pkl]
+```
+[input1.pkl]: the embedding of 1st Hi-C <br>
+[input2.pkl]: the embedding of 2nd Hi-C <br>
+This script will output the reproducibility score in command line. You can also use [Reproducibility.ipynb](Reproducibility.ipynb) to calculate online.
+
 #### 2. Inference for chromatin loop detection
 ```
 python3 inference.py --input [input_file] --batch_size [infer_batch_size] --resolution [hic_resolution] \
