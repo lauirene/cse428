@@ -55,6 +55,8 @@ def calculate_similarity(input1, input2):
         embedding2 = input2[combine_key]
         # Calculate the similarity between the two embeddings
         similarity = np.dot(embedding1, embedding2) / (np.linalg.norm(embedding1) * np.linalg.norm(embedding2))
+        if np.isnan(similarity):
+            continue
         similarity_dict[chr].append(similarity)
     #ignore chrY, chrM, Un, Alt cases
     similarity_list=[]
