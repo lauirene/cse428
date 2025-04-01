@@ -148,7 +148,7 @@ def main_worker(gpu, ngpus_per_node,args):
     model = Finetune_Model_Head(vit_backbone, task=0,
                             decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
                         mlp_ratio=4., norm_layer=nn.LayerNorm,pos_embed_size=patch_wise_size)
-    if os.path.exists(pretrain_path):
+    if os.path.exists(pretrain_path) and os.path.isfile(pretrain_path) and os.path.getsize() > 1000:
         print("Loading pre-trained model from {} for decoder".format(pretrain_path))
         checkpoint = torch.load(pretrain_path, map_location='cpu')
         checkpoint_model = checkpoint['model']
