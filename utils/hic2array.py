@@ -84,7 +84,7 @@ def hic2array(input_hic,output_pkl=None,
                 continue
             if "alt" in chrom1_name.lower() or "alt" in chrom2_name.lower():
                 continue
-            read_array=read_chrom_array(chrom1,chrom2, normalization, input_hic, resolution,max_resolution=min(resolution,max_resolution_candidate))
+            read_array=read_chrom_array(chrom1,chrom2, normalization, input_hic, resolution,call_resolution=min(resolution,max_resolution_candidate))
             if read_array is None:
                 print("No data found for",chrom1_name,chrom2_name)
                 continue
