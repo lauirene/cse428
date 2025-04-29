@@ -8,7 +8,7 @@ import pickle
 def write_pkl(data, path):
     with open(path, 'wb') as f:
         pickle.dump(data, f)
-def read_chrom_array(chr1, chr2, normalization, hic_file, resolution):
+def read_chrom_array(chr1, chr2, normalization, hic_file, resolution,call_resolution):
     chr1_name = chr1.name
     chr2_name = chr2.name
     infos = []
@@ -18,7 +18,7 @@ def read_chrom_array(chr1, chr2, normalization, hic_file, resolution):
     infos.append(chr1_name)
     infos.append(chr2_name)
     infos.append('BP')
-    infos.append(resolution)
+    infos.append(call_resolution)
     print(infos)
     row, col, val = [], [], []
     rets = hicstraw.straw(*infos)
@@ -84,7 +84,7 @@ def hic2array(input_hic,output_pkl=None,
                 continue
             if "alt" in chrom1_name.lower() or "alt" in chrom2_name.lower():
                 continue
-            read_array=read_chrom_array(chrom1,chrom2, normalization, input_hic, resolution)
+            read_array=read_chrom_array(chrom1,chrom2, normalization, input_hic, resolution,max_resolution=min(resolution,max_resolution_candidate))
             if read_array is None:
                 print("No data found for",chrom1_name,chrom2_name)
                 continue
