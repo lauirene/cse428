@@ -789,6 +789,7 @@ model = to_float(model)
 input_mat = input_mat.unsqueeze(0)
 total_count = total_count.unsqueeze(0) if total_count is not None else None #add batch dimension
 
+#you can apply patch-wise mask into input_mat before you send into the model to test the model's masked region reconstruction capacity.
 output = model(input_mat,total_count)
 
 def convert_rgb(data,max_value):
@@ -805,12 +806,13 @@ def convert_rgb(data,max_value):
 	data_rgb = data_rgb.transpose(1,2,0)
 	data_rgb = (data_rgb*255).astype(np.uint8)
 	return data_rgb
+
 reconstruction = output[0,:,:].cpu().detach().numpy()
 reconstruction = reconstruction.astype(np.uint8)
 reconstruction = reconstruction.transpose(1,2,0)#sawp (C,H,W) to (H,W,C)
 fig, axes = plt.subplots(1, 2, figsize=(10, 5))
 axes[0].imshow(convert_rgb(input_vis, 20))
-axes[0].set_title("Input (1000 loci at 5kb)")
+axes[0].set_title("Input")
 axes[1].imshow(reconstruction)
 axes[1].set_title("Output")
 plt.tight_layout()
