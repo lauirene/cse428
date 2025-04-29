@@ -62,7 +62,8 @@ def hic2array(input_hic,output_pkl=None,
         chrom_list.append(chrom)
         chrom_dict[chrom.name]=chrom.length
     resolution_list = hic.getResolutions()
-    if resolution not in resolution_list:
+    max_resolution_candidate = max(resolution_list)
+    if resolution<=max_resolution_candidate and resolution not in resolution_list:
         print("Resolution not found in the hic file, please choose from the following list:")
         print(resolution_list)
         exit()
