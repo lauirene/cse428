@@ -53,15 +53,16 @@ class Inference_Dataset(torch.utils.data.Dataset):
             if hic_data.shape[0]<half_window_height:
                 continue
             self.total_count += np.sum(hic_data.data)   
-            combine_row = np.concatenate([hic_data.row,hic_data.col])
-            combine_col = np.concatenate([hic_data.col,hic_data.row])
-            combine_data = np.concatenate([hic_data.data,hic_data.data])
-            hic_data.row = combine_row
-            hic_data.col = combine_col
-            hic_data.data = combine_data #triu part
-            #divide to half for the diagonal region
-            select_index= (hic_data.row==hic_data.col)
-            hic_data.data[select_index] = hic_data.data[select_index]/2
+            if hic_data.shape[0]==hic_data.shape[1]:
+                combine_row = np.concatenate([hic_data.row,hic_data.col])
+                combine_col = np.concatenate([hic_data.col,hic_data.row])
+                combine_data = np.concatenate([hic_data.data,hic_data.data])
+                hic_data.row = combine_row
+                hic_data.col = combine_col
+                hic_data.data = combine_data #triu part
+                #divide to half for the diagonal region
+                select_index= (hic_data.row==hic_data.col)
+                hic_data.data[select_index] = hic_data.data[select_index]/2
             input_row_size= max(hic_data.shape[0],self.window_height) #do padding if necessary
             input_col_size= max(hic_data.shape[1],self.window_width)
             if self.task == 5: # schic enhancement
