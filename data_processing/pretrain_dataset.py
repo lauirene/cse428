@@ -174,7 +174,7 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
         data_path = self.train_list[idx]
         data= load_pickle(data_path)
         input_matrix = data['input']
-        region_size =self.window_height*self.window_width
+        region_size = input_matrix.shape[0]*input_matrix.shape[1]
         if isinstance(input_matrix, coo_matrix):
             cur_sparsity = input_matrix.nnz/region_size
         else:
@@ -312,6 +312,10 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
         mask_array = np.ones(submat.shape,dtype=np.float32)
         mask_array[submat==0]=0
         mask_array = mask_array[np.newaxis,:,:]
+        cur_sparsity = np.sum(mask_array)/self.window_height/self.window_width
+        if cur_sparsity<self.sparsity_filter:
+            random_index = random.randint(0, len(self.train_list)-1)
+            return self.__getitem__(random_index)
         input = submat
         max_value = np.max(input)
         input = np.log10(input+1)
