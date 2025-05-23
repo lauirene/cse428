@@ -23,7 +23,8 @@ class Finetune_Model_Head(nn.Module):
     """
     def __init__(self, vit_backbone,task=1,
                  decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
-                 mlp_ratio=4., norm_layer=nn.LayerNorm,pos_embed_size=(1,250)):
+                 mlp_ratio=4., norm_layer=nn.LayerNorm,pos_embed_size=(1,250),
+                 use_enformer=False):
         """
         task 0: fine-tuning setting
         task 1: reproducibility analysis
@@ -51,6 +52,28 @@ class Finetune_Model_Head(nn.Module):
         self.in_chans = self.vit_backbone.in_chans
 
         self.pos_embed_size = pos_embed_size
+
+        # added enformer stuff
+        self.use_enformer = use_enformer
+        self.enformer = None
+        self.enformer_projection = None
+        self.enformer_embed_dim = 1536 
+        
+        if self.use_enformer:
+            print("Enformer component ENABLED: Instantiating pre-trained Enformer (enformer-pytorch).")
+            self.enformer = Enformer.from_pretrained(
+                'EleutherAI/enformer-official-rough',
+                target_length=1024 # Adjust if your sequence_length is different
+            )
+            print("Pre-trained Enformer loaded.")
+            for param in self.enformer.parameters():
+                param.requires_grad = False
+            print("Enformer parameters frozen.")
+            
+            self.enformer_projection = nn.Linear(self.enformer_embed_dim, self.embed_dim)
+            self._init_weights(self.enformer_projection)
+        else:
+            print("Enformer component DISABLED.")
 
         # HiCFoundation decoder 
         self.decoder_embed = nn.Linear(self.embed_dim, decoder_embed_dim, bias=True)
@@ -87,6 +110,8 @@ class Finetune_Model_Head(nn.Module):
             #for pre-train reconstruction visualization only
             self.decoder_pred = nn.Linear(decoder_embed_dim, patch_size**2 * 3, bias=True)
         self.num_additional_token = 2 # 1 cls token and 1 count token
+        # line below to account for added enformer token
+        self.num_tokens_before_patches = self.num_additional_token + (1 if self.use_enformer else 0)
         self.initialize_weights()
     @torch.jit.ignore
     def no_weight_decay(self) -> Set:
@@ -167,11 +192,31 @@ class Finetune_Model_Head(nn.Module):
     def forward_backbone(self,img,total_count):
         img=self.vit_backbone.forward_features(img,total_count)
         return img
-    def forward_decoder(self,img,total_count=None):
+    def forward_decoder(self, img, sequence_data, total_count=None):
         if total_count is None:
             total_count = torch.ones(img.shape[0]).to(img.device)
             total_count = total_count*1000000000
         x = self.forward_backbone(img,total_count)
+        if self.use_enformer:
+            if sequence_data is None:
+                raise ValueError("Sequence data cannot be None when Enformer is enabled (--use_enformer).")
+            if self.enformer is None or self.enformer_projection is None:
+                 raise RuntimeError("Enformer components are None when use_enformer is True. Check instantiation.")
+
+            sequence_embedding_output = self.enformer(sequence_data)
+            sequence_embedding_global = sequence_embedding_output.mean(dim=1)
+            sequence_embedding_projected = self.enformer_projection(sequence_embedding_global).unsqueeze(1)
+
+            x = torch.cat((x[:, :self.num_additional_token, :], sequence_embedding_projected, x[:, self.num_additional_token:, :]), dim=1)
+        else:
+            # If Enformer is NOT used, create a zero tensor for the Enformer token slot
+            sequence_embedding_projected = torch.zeros(
+                (x.shape[0], 1, self.embed_dim), 
+                device=x.device, 
+                dtype=x.dtype
+            )
+            x = torch.cat((x[:, :self.num_additional_token, :], sequence_embedding_projected, x[:, self.num_additional_token:, :]), dim=1)
+        
         if self.task==6:
             embedding_list = []
             embedding_list.append(x)
@@ -212,9 +257,9 @@ class Finetune_Model_Head(nn.Module):
                                                 total_count=total_count)
             submatrix_embedding = decoder_output[:,0,:]
             pred_2d = self.decoder_map(decoder_output)
-            pred_2d = pred_2d[:,self.num_additional_token:,:]
+            pred_2d = pred_2d[:,self.num_tokens_before_patches:,:]
             pred_2d = self.unpatchify_channel(pred_2d,1)
-            patch_embedding = decoder_output[:,self.num_additional_token:,:]
+            patch_embedding = decoder_output[:,self.num_tokens_before_patches:,:]
             num_patch_row = self.pos_embed_size[0]
             num_patch_col = self.pos_embed_size[1]
             pred_1d = patch_embedding.reshape(shape=(patch_embedding.shape[0], num_patch_row,num_patch_col,-1)) #average all columns
@@ -233,7 +278,7 @@ class Finetune_Model_Head(nn.Module):
                                                 total_count=total_count)
             decoder_output = self.decoder_map(decoder_output)
             # use patch-wise token
-            decoder_output= decoder_output[:,self.num_additional_token:,:]
+            decoder_output= decoder_output[:,self.num_tokens_before_patches:,:]
             pred_image = self.unpatchify_channel(decoder_output,1)
             return pred_image[:,0,:]
         
@@ -243,7 +288,7 @@ class Finetune_Model_Head(nn.Module):
                                                 total_count=total_count)
             decoder_output = self.decoder_pred(decoder_output)
             # use patch-wise token
-            decoder_output= decoder_output[:,self.num_additional_token:,:]
+            decoder_output= decoder_output[:,self.num_tokens_before_patches:,:]
             pred_image = self.unpatchify_channel(decoder_output,3)
             #remove the normatlization
             pred_image = unnormalize_image(pred_image)
@@ -254,7 +299,7 @@ class Finetune_Model_Head(nn.Module):
             #for epigenomic assay prediction
             decoder_output = self.forward_decoder(img,
                                                 total_count=total_count)
-            decoder_output = decoder_output[:,self.num_additional_token:,:]
+            decoder_output = decoder_output[:,self.num_tokens_before_patches:,:]
             num_patch_row = self.pos_embed_size[0]
             num_patch_col = self.pos_embed_size[1]
             x = decoder_output.reshape(shape=(decoder_output.shape[0], num_patch_row,num_patch_col,-1)) #average all columns
@@ -275,7 +320,7 @@ class Finetune_Model_Head(nn.Module):
             #remove cls and additional token, which is not very useful in pre-training
             final_embedding = []
             for embedding in embedding_list:
-                embedding = embedding[:,self.num_additional_token:,:]
+                embedding = embedding[:,self.num_tokens_before_patches:,:]
                 # shapre N, L, C
                 # reshape to N, H,W,C
                 num_patch_row = self.pos_embed_size[0]

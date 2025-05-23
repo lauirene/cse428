@@ -105,6 +105,10 @@ class Finetune_Dataset(torch.utils.data.Dataset):
                             print("The specified window size is {} x {}".format(window_height, window_width))
                             print("Please adjust --input_row_size and --input_col_size to match your input.")
                             continue
+                        if not ('sequence_data' in data_keys):
+                            print("The 'sequence_data' key is not included in the pkl file. The directory is skipped.")
+                            print("The dir is {}".format(cur_dir))
+                            continue
                     self.train_dict[dataset_name].append(cur_path)
                     self.train_list.append(cur_path)
                 else:
@@ -134,7 +138,7 @@ class Finetune_Dataset(torch.utils.data.Dataset):
             #to support off-diagonal submatrix, we did not any automatic symmetrical conversion for your input array.
         input_matrix = np.nan_to_num(input_matrix)
         input_matrix = input_matrix.astype(np.float32)
-        input_matrix = np.log10(input_matrix+1)
+        #input_matrix = np.log10(input_matrix+1)
         max_value = np.max(input_matrix)
         input_matrix = self.convert_rgb(input_matrix,max_value)
         if self.transform:
@@ -168,8 +172,14 @@ class Finetune_Dataset(torch.utils.data.Dataset):
             target_vector = target_vector.astype(np.float32)
         else:
             target_vector = None
+        
+        sequence_data = None # Initialize
+        if "sequence_data" in data and data['sequence_data'] is not None:
+            sequence_data = data['sequence_data']
+            if isinstance(sequence_data, np.ndarray):
+                sequence_data = sequence_data.astype(np.float32)
 
-        return list_to_tensor([input_matrix, total_count, target_matrix, embed_target, target_vector])
+        return list_to_tensor([input_matrix, total_count, target_matrix, embed_target, target_vector, sequence_data])
         
 
 

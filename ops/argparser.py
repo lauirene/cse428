@@ -117,6 +117,9 @@ def argparser_finetune():
                         help="save frequency for saving the fine-tuned model")
     parser.add_argument("--gpu",default="0",type=str,help="which gpu to use, will be configured by the script automatically")
 
+    # Add Enformer specific arguments
+    parser.add_argument("--use_enformer", action='store_true',
+                        help="If set, enables the Enformer component in the model. Default: False.")
 
     return parser
 

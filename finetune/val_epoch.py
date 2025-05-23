@@ -24,9 +24,9 @@ def val_epoch(model, data_loader_val, device, epoch,
     num_iter = len(data_loader_val)
     print("number of iterations: ",num_iter)
     for data_iter_step, val_data in enumerate(metric_logger.log_every(data_loader_val, print_freq, header)):
-        input_matrix, total_count, target_matrix, embed_target, target_vector = list_to_device(val_data,device=device)
+        input_matrix, total_count, target_matrix, embed_target, target_vector, sequence_data = list_to_device(val_data,device=device)
         with torch.no_grad():
-            output_embedding, output_2d, output_1d = model(input_matrix, total_count)
+            output_embedding, output_2d, output_1d = model(input_matrix, total_count, sequence_data)
         if embed_target is not None:
             embedding_loss = criterion(output_embedding, embed_target)
         else:
