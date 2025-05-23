@@ -168,8 +168,8 @@ def process_mcool_data_and_save_pickle(
 if __name__ == "__main__":
     # --- Configuration ---
     # IMPORTANT: Customize these paths to your actual files and desired output location
-    YOUR_MCOOL_FILE_PATH = "/path/to/your/hic_data.mcool" # The single .mcool file you want to process
-    YOUR_FASTA_FILE = "/path/to/your/Homo_sapiens.GRCh38.dna.primary_assembly.fa" # Your genomic FASTA file
+    YOUR_MCOOL_FILE_PATH = "/storage/ixjl/cse428/orca_data/resources/4DNFI9GMP2J8.rebinned.mcool" # The single .mcool file you want to process
+    YOUR_FASTA_FILE = "/storage/ixjl/cse428/ref_genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa" # Your genomic FASTA file
     OUTPUT_BASE_DIR = "./processed_finetune_data_multiple_regions" # Output directory for .pkl files
 
     # --- Model Input Parameters (as per HiCFoundation paper for resolution enhancement) ---
