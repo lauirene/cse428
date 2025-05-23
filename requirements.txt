@@ -15,3 +15,5 @@ cooler
 numba
 pyBigWig
 timm==0.3.2
+enformer-pytorch  # <--- NEW
+tqdm              # <--- NEW
