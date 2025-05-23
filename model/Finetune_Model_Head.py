@@ -9,6 +9,7 @@ from model.pos_embed import get_2d_sincos_pos_embed,get_2d_sincos_pos_embed_rect
 
 import numpy as np
 from typing import Set
+from enformer_pytorch import Enformer
 def unnormalize_image(samples):
     imagenet_mean = np.array([0.485, 0.456, 0.406])
     imagenet_std = np.array([0.229, 0.224, 0.225])
