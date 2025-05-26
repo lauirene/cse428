@@ -145,10 +145,11 @@ def main_worker(gpu, ngpus_per_node,args):
 
     #task 0 indicates this is under fine-tuning setting
     from model.Finetune_Model_Head import Finetune_Model_Head
-    model = Finetune_Model_Head(vit_backbone, task=0, use_enformer=args.use_enformer,  # modified to have enformer flag
+    model = Finetune_Model_Head(vit_backbone, task=0,
                             decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
-                        mlp_ratio=4., norm_layer=nn.LayerNorm,pos_embed_size=patch_wise_size)
-    if os.path.exists(pretrain_path) and os.path.isfile(pretrain_path) and os.path.getsize() > 1000:
+                        mlp_ratio=4., norm_layer=nn.LayerNorm,pos_embed_size=patch_wise_size,
+                        use_sequence=args.use_sequence)
+    if os.path.exists(pretrain_path) and os.path.isfile(pretrain_path) and os.path.getsize(pretrain_path) > 1000:
         print("Loading pre-trained model from {} for decoder".format(pretrain_path))
         checkpoint = torch.load(pretrain_path, map_location='cpu')
         checkpoint_model = checkpoint['model']

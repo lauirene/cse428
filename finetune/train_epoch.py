@@ -36,7 +36,7 @@ def train_epoch(model, data_loader_train, optimizer,
         if data_iter_step % accum_iter == 0:
             lr_sched.adjust_learning_rate(optimizer, data_iter_step / len(data_loader_train) + epoch, args)
         input_matrix, total_count, target_matrix, embed_target, target_vector, sequence_data = list_to_device(train_data,device=device)
-        output_embedding, output_2d, output_1d = model(input_matrix, total_count, sequence_data)
+        output_embedding, output_2d, output_1d = model(input_matrix, total_count=total_count, sequence_data=sequence_data)
         
         if embed_target is not None:
             embedding_loss = criterion(output_embedding, embed_target)

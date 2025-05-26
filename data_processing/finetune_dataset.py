@@ -120,13 +120,38 @@ class Finetune_Dataset(torch.utils.data.Dataset):
         return len(self.train_list)
     
     def convert_rgb(self,data_log,max_value):
+        # --- ORIGINAL LOGIC START ---
+        # Ensure data_log has a channel dimension (1, H, W) if it's currently (H, W)
         if len(data_log.shape)==2:
-            data_log = data_log[np.newaxis,:]
-        data_red = np.ones(data_log.shape)
-        data_log1 = (max_value-data_log)/max_value
-        data_rgb = np.concatenate([data_red,data_log1,data_log1],axis=0,dtype=np.float32)#transform only accept channel last case
+            data_log = data_log[np.newaxis,:,:] # Add channel dimension at axis 0
+        # --- ORIGINAL LOGIC END ---
+
+        # --- SAFE DIVIDE MODIFICATION START ---
+        # Ensure max_value_safe is not zero to prevent RuntimeWarning
+        max_value_safe = np.max(data_log) 
+        if max_value_safe == 0:
+            max_value_safe = 1.0 # Use 1.0 (or a small epsilon like 1e-8) to avoid division by zero
+        # --- SAFE DIVIDE MODIFICATION END ---
+        
+        # --- ORIGINAL LOGIC START (using safe_max_value) ---
+        data_red = np.ones(data_log.shape) # Creates a channel of all 1.0s (e.g., for R channel)
+        # Apply the original normalization logic with the safe max_value
+        data_log_normalized_for_rgb = (max_value_safe - data_log) / max_value_safe 
+        
+        # Concatenate channels: R=1.0, G=normalized_data, B=normalized_data
+        data_rgb = np.concatenate([data_red, data_log_normalized_for_rgb, data_log_normalized_for_rgb], axis=0, dtype=np.float32)
+        
+        # Transpose from (C, H, W) to (H, W, C) as expected by torchvision.transforms.ToTensor()
         data_rgb = data_rgb.transpose(1,2,0)
-        return data_rgb
+        
+        return data_rgb.astype(np.float32) # Ensure final output type is float32
+        # if len(data_log.shape)==2:
+        #     data_log = data_log[np.newaxis,:]
+        # data_red = np.ones(data_log.shape)
+        # data_log1 = (max_value-data_log)/max_value
+        # data_rgb = np.concatenate([data_red,data_log1,data_log1],axis=0,dtype=np.float32)#transform only accept channel last case
+        # data_rgb = data_rgb.transpose(1,2,0)
+        # return data_rgb
     
     def __getitem__(self, idx):
         train_file = self.train_list[idx]

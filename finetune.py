@@ -10,7 +10,7 @@ from ops.argparser import  argparser_finetune
 import torch
 import torch.multiprocessing as mp
 import timm
-assert timm.__version__ == "0.3.2" # version check
+#assert timm.__version__ == "0.3.2" # version check
 def main(args):
     import socket
     hostname = socket.gethostname()
