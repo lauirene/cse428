@@ -105,10 +105,6 @@ class Finetune_Dataset(torch.utils.data.Dataset):
                             print("The specified window size is {} x {}".format(window_height, window_width))
                             print("Please adjust --input_row_size and --input_col_size to match your input.")
                             continue
-                        if not ('sequence_data' in data_keys):
-                            print("The 'sequence_data' key is not included in the pkl file. The directory is skipped.")
-                            print("The dir is {}".format(cur_dir))
-                            continue
                     self.train_dict[dataset_name].append(cur_path)
                     self.train_list.append(cur_path)
                 else:
@@ -120,38 +116,13 @@ class Finetune_Dataset(torch.utils.data.Dataset):
         return len(self.train_list)
     
     def convert_rgb(self,data_log,max_value):
-        # --- ORIGINAL LOGIC START ---
-        # Ensure data_log has a channel dimension (1, H, W) if it's currently (H, W)
         if len(data_log.shape)==2:
-            data_log = data_log[np.newaxis,:,:] # Add channel dimension at axis 0
-        # --- ORIGINAL LOGIC END ---
-
-        # --- SAFE DIVIDE MODIFICATION START ---
-        # Ensure max_value_safe is not zero to prevent RuntimeWarning
-        max_value_safe = np.max(data_log) 
-        if max_value_safe == 0:
-            max_value_safe = 1.0 # Use 1.0 (or a small epsilon like 1e-8) to avoid division by zero
-        # --- SAFE DIVIDE MODIFICATION END ---
-        
-        # --- ORIGINAL LOGIC START (using safe_max_value) ---
-        data_red = np.ones(data_log.shape) # Creates a channel of all 1.0s (e.g., for R channel)
-        # Apply the original normalization logic with the safe max_value
-        data_log_normalized_for_rgb = (max_value_safe - data_log) / max_value_safe 
-        
-        # Concatenate channels: R=1.0, G=normalized_data, B=normalized_data
-        data_rgb = np.concatenate([data_red, data_log_normalized_for_rgb, data_log_normalized_for_rgb], axis=0, dtype=np.float32)
-        
-        # Transpose from (C, H, W) to (H, W, C) as expected by torchvision.transforms.ToTensor()
+            data_log = data_log[np.newaxis,:]
+        data_red = np.ones(data_log.shape)
+        data_log1 = (max_value-data_log)/max_value
+        data_rgb = np.concatenate([data_red,data_log1,data_log1],axis=0,dtype=np.float32)#transform only accept channel last case
         data_rgb = data_rgb.transpose(1,2,0)
-        
-        return data_rgb.astype(np.float32) # Ensure final output type is float32
-        # if len(data_log.shape)==2:
-        #     data_log = data_log[np.newaxis,:]
-        # data_red = np.ones(data_log.shape)
-        # data_log1 = (max_value-data_log)/max_value
-        # data_rgb = np.concatenate([data_red,data_log1,data_log1],axis=0,dtype=np.float32)#transform only accept channel last case
-        # data_rgb = data_rgb.transpose(1,2,0)
-        # return data_rgb
+        return data_rgb
     
     def __getitem__(self, idx):
         train_file = self.train_list[idx]
@@ -163,7 +134,7 @@ class Finetune_Dataset(torch.utils.data.Dataset):
             #to support off-diagonal submatrix, we did not any automatic symmetrical conversion for your input array.
         input_matrix = np.nan_to_num(input_matrix)
         input_matrix = input_matrix.astype(np.float32)
-        #input_matrix = np.log10(input_matrix+1)
+        input_matrix = np.log10(input_matrix+1)
         max_value = np.max(input_matrix)
         input_matrix = self.convert_rgb(input_matrix,max_value)
         if self.transform:
@@ -197,14 +168,8 @@ class Finetune_Dataset(torch.utils.data.Dataset):
             target_vector = target_vector.astype(np.float32)
         else:
             target_vector = None
-        
-        sequence_data = None # Initialize
-        if "sequence_data" in data and data['sequence_data'] is not None:
-            sequence_data = data['sequence_data']
-            if isinstance(sequence_data, np.ndarray):
-                sequence_data = sequence_data.astype(np.float32)
 
-        return list_to_tensor([input_matrix, total_count, target_matrix, embed_target, target_vector, sequence_data])
+        return list_to_tensor([input_matrix, total_count, target_matrix, embed_target, target_vector])
         
 
 
