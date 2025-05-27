@@ -25,4 +25,4 @@ python finetune.py \
     --tensorboard 1 \
     --num_workers 8 \
     --pin_mem \
-    --use_enformer
+    --use_sequence
