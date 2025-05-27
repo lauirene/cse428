@@ -313,12 +313,11 @@ class Pretrain_Dataset(torch.utils.data.Dataset):
         mask_array[submat==0]=0
         mask_array = mask_array[np.newaxis,:,:]
         cur_sparsity = np.sum(mask_array)/self.window_height/self.window_width
-        input = submat
-        max_value = np.max(input)
-        if cur_sparsity<self.sparsity_filter or max_value<0.01:
+        if cur_sparsity<self.sparsity_filter:
             random_index = random.randint(0, len(self.train_list)-1)
             return self.__getitem__(random_index)
-        
+        input = submat
+        max_value = np.max(input)
         input = np.log10(input+1)
         max_value = np.log10(max_value+1)
         input = self.convert_rgb(input,max_value)
