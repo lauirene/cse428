@@ -17,8 +17,18 @@ from ops.io_utils import write_log
 import model.lr_decay as lrd
 from model.NativeScaler import NativeScalerWithGradNormCount as NativeScaler
 from model.model_utils import load_model,save_checkpoint,save_model2path
-from finetune.train_epoch import train_epoch
+from finetune.train_epoch import train_epoch, attention_logs, LOG_EVERY_N
 from finetune.val_epoch import val_epoch
+
+from model.pos_embed import expand_pos_embed_add_count_and_seq
+
+def attention_hook(module, input, output):
+    batch_stats = {
+        'output_shape': list(output.shape),
+        'mean': output.mean().item(),
+        'std': output.std().item()
+    }
+    attention_logs.append(batch_stats)
 
 def parse_text(config_file, data_dir):
     train_list=[]
@@ -125,6 +135,20 @@ def main_worker(gpu, ngpus_per_node,args):
         print("Loading pre-trained model from {}".format(pretrain_path))
         checkpoint = torch.load(pretrain_path, map_location='cpu')
         checkpoint_model = checkpoint['model']
+        if 'pos_embed' in checkpoint_model:
+            print(f"DEBUG: loaded checkpoint pos_embed shape → {checkpoint_model['pos_embed'].shape}")
+
+        # Calculate num_patches and embed_dim
+        num_patches = (args.input_row_size // args.patch_size) * (args.input_col_size // args.patch_size)
+        embed_dim = vit_backbone.embed_dim  # from VisionTransformer instance
+
+        # Apply fix if needed
+        if 'pos_embed' in checkpoint_model:
+            checkpoint_model['pos_embed'] = expand_pos_embed_add_count_and_seq(
+                checkpoint_model['pos_embed'],
+                embed_dim=vit_backbone.embed_dim,
+                device='cpu'
+            )
         state_dict = vit_backbone.state_dict()
         for k in ['head.weight', 'head.bias']:
             if k in checkpoint_model and checkpoint_model[k].shape != state_dict[k].shape:
@@ -148,10 +172,23 @@ def main_worker(gpu, ngpus_per_node,args):
     model = Finetune_Model_Head(vit_backbone, task=0,
                             decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
                         mlp_ratio=4., norm_layer=nn.LayerNorm,pos_embed_size=patch_wise_size)
-    if os.path.exists(pretrain_path) and os.path.isfile(pretrain_path) and os.path.getsize() > 1000:
+    if os.path.exists(pretrain_path) and os.path.isfile(pretrain_path) and os.path.getsize(pretrain_path) > 1000:
         print("Loading pre-trained model from {} for decoder".format(pretrain_path))
         checkpoint = torch.load(pretrain_path, map_location='cpu')
         checkpoint_model = checkpoint['model']
+        if 'pos_embed' in checkpoint_model:
+            print(f"DEBUG: loaded checkpoint pos_embed shape → {checkpoint_model['pos_embed'].shape}")
+        # Calculate num_patches and embed_dim
+        num_patches = (args.input_row_size // args.patch_size) * (args.input_col_size // args.patch_size)
+        embed_dim = vit_backbone.embed_dim  # from your VisionTransformer instance
+
+        # Apply fix if needed
+        if 'pos_embed' in checkpoint_model:
+            checkpoint_model['pos_embed'] = expand_pos_embed_add_count_and_seq(
+                checkpoint_model['pos_embed'],
+                embed_dim=vit_backbone.embed_dim,
+                device='cpu'
+            )
         interpolate_pos_embed_inputsize(model, checkpoint['model'],
                                         input_size=patch_wise_size,use_decoder=True)
         msg = model.load_state_dict(checkpoint_model, strict=False)
@@ -161,9 +198,16 @@ def main_worker(gpu, ngpus_per_node,args):
     #freeze encoder or not
     #finetune 1: only fine-tune the model's decoder; 2: fine-tune the whole model;
     if args.finetune==1:
-        for _, p in model_without_ddp.vit_backbone.named_parameters():
-            p.requires_grad = False
+        for name, p in model_without_ddp.vit_backbone.named_parameters():
+            if 'sequence_encoder' in name:
+                print("setting sequence encoder to require grad")
+                p.requires_grad = True  # Keep sequence encoder trainable
+            else:
+                p.requires_grad = False
+
         print_important_info("Only fine-tune the model's decoder")
+    for i, blk in enumerate(model.vit_backbone.blocks):
+        blk.attn.register_forward_hook(attention_hook)
 
     if args.distributed:
         #not necessary for current setting, since all param with grad
@@ -208,6 +252,11 @@ def main_worker(gpu, ngpus_per_node,args):
     print("Start training from epoch %d"%start_epoch," to epoch %d"%epochs)
     save_freq = args.save_freq
     best_loss = 1e9
+    # === Early stopping setup ===
+    patience = args.patience  # new argument added to argparse
+    patience_counter = 0
+    # best_loss = 1e9
+    best_epoch = -1
     for epoch in range(start_epoch, epochs):
         if args.distributed:
             data_loader_train.sampler.set_epoch(epoch)
@@ -234,6 +283,25 @@ def main_worker(gpu, ngpus_per_node,args):
             #model_path,args,epoch, model_without_ddp, optimizer, loss_scaler
             model_path = os.path.join(model_dir, 'model_best.pth.tar')
             save_model2path(model_path,args,epoch, model_without_ddp, optimizer, loss_scaler)
+            patience_counter = 0
+            best_epoch = epoch
+            print(f" → New best model saved at epoch {epoch} (Val Loss: {best_loss:.4f})")
+        else:
+            patience_counter += 1
+            print(f" → Early stopping patience {patience_counter}/{patience}")
+            if patience > 0 and patience_counter >= patience:
+                print(" → Early stopping triggered. Stopping training.")
+                break
+        
+        summary = {
+            "best_epoch": best_epoch,
+            "best_val_loss": best_loss
+        }
+        summary_path = os.path.join(output_dir, "best_summary.json")
+        with open(summary_path, "w") as f:
+            json.dump(summary, f, indent=4)
+        print(f"Best model summary saved to {summary_path}")
+    
     total_time = time.time()-start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))

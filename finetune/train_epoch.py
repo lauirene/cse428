@@ -6,11 +6,15 @@ from typing import Iterable
 import torch
 import torch.nn.functional as F
 import time
+import json
+import os
 
 from ops.Logger import MetricLogger,SmoothedValue
 import model.lr_sched as lr_sched
 from finetune.loss import configure_loss
 from ops.train_utils import list_to_device, to_value, create_image, torch_to_nparray, convert_gray_rgbimage
+attention_logs = []
+LOG_EVERY_N = 10  # log every 10 batches
 
 
 def train_epoch(model, data_loader_train, optimizer, 
@@ -33,20 +37,37 @@ def train_epoch(model, data_loader_train, optimizer,
 
     num_iter = len(data_loader_train)
     for data_iter_step, train_data in enumerate(metric_logger.log_every(data_loader_train, print_freq, header)):
+        ## logging code ##################
+        if data_iter_step % LOG_EVERY_N == 0 and len(attention_logs) > 0:
+            output_path = os.path.join(args.output, f"attention_logs_epoch{epoch}_step{data_iter_step}.json")
+            with open(output_path, 'w') as f:
+                json.dump(attention_logs, f, indent=4)
+            print(f"[DEBUG] Saved attention logs to {output_path}")
+            attention_logs.clear()  # clear after saving
+        ##################################
         if data_iter_step % accum_iter == 0:
             lr_sched.adjust_learning_rate(optimizer, data_iter_step / len(data_loader_train) + epoch, args)
-        input_matrix, total_count, target_matrix, embed_target, target_vector = list_to_device(train_data,device=device)
-        output_embedding, output_2d, output_1d = model(input_matrix, total_count)
+        input_matrix, total_count, target_matrix, embed_target, target_vector, sequence_data = list_to_device(train_data,device=device)
+        output_embedding, output_2d, output_1d = model(input_matrix, total_count, sequence_data)
         
         if embed_target is not None:
             embedding_loss = criterion(output_embedding, embed_target)
         else:
             embedding_loss = 0
         if target_matrix is not None:
-            #flatten 2d matrix
-            output_2d_flatten = torch.flatten(output_2d, start_dim=1,end_dim=-1)
-            target_matrix_flatten = torch.flatten(target_matrix, start_dim=1,end_dim=-1)
-            output_2d_loss = criterion(output_2d_flatten, target_matrix_flatten)
+            if args.loss_type == 3:
+                print("using ssim")
+                if output_2d.dim() == 3:
+                    output_2d = output_2d.unsqueeze(1)
+                if target_matrix.dim() == 3:
+                    target_matrix = target_matrix.unsqueeze(1)
+                output_2d_loss = criterion(output_2d, target_matrix)
+            else:
+                print("not using ssim")
+                #flatten 2d matrix
+                output_2d = torch.flatten(output_2d, start_dim=1,end_dim=-1)
+                target_matrix_flatten = torch.flatten(target_matrix, start_dim=1,end_dim=-1)
+                output_2d_loss = criterion(output_2d, target_matrix_flatten)
         else:
             output_2d_loss = 0
         if target_vector is not None:
@@ -104,4 +125,8 @@ def train_epoch(model, data_loader_train, optimizer,
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
     print("Averaged stats:", metric_logger)
+
+    # Add to help with OOM errors
+    torch.cuda.empty_cache()
+
     return {k: meter.global_avg for k, meter in metric_logger.meters.items()}

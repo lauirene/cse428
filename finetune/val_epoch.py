@@ -24,18 +24,27 @@ def val_epoch(model, data_loader_val, device, epoch,
     num_iter = len(data_loader_val)
     print("number of iterations: ",num_iter)
     for data_iter_step, val_data in enumerate(metric_logger.log_every(data_loader_val, print_freq, header)):
-        input_matrix, total_count, target_matrix, embed_target, target_vector = list_to_device(val_data,device=device)
+        input_matrix, total_count, target_matrix, embed_target, target_vector, sequence_data = list_to_device(val_data,device=device)
         with torch.no_grad():
-            output_embedding, output_2d, output_1d = model(input_matrix, total_count)
+            output_embedding, output_2d, output_1d = model(input_matrix, total_count, sequence_data)
         if embed_target is not None:
             embedding_loss = criterion(output_embedding, embed_target)
         else:
             embedding_loss = 0
         if target_matrix is not None:
-            #flatten 2d matrix
-            output_2d_flatten = torch.flatten(output_2d, start_dim=1,end_dim=-1)
-            target_matrix_flatten = torch.flatten(target_matrix, start_dim=1,end_dim=-1)
-            output_2d_loss = criterion(output_2d_flatten, target_matrix_flatten)
+            if args.loss_type == 3:
+                print("using ssim")
+                if output_2d.dim() == 3:
+                    output_2d = output_2d.unsqueeze(1)
+                if target_matrix.dim() == 3:
+                    target_matrix = target_matrix.unsqueeze(1)
+                output_2d_loss = criterion(output_2d, target_matrix)
+            else:
+                print("not using ssim")
+                #flatten 2d matrix
+                output_2d_flatten = torch.flatten(output_2d, start_dim=1,end_dim=-1)
+                target_matrix_flatten = torch.flatten(target_matrix, start_dim=1,end_dim=-1)
+                output_2d_loss = criterion(output_2d_flatten, target_matrix_flatten)
         else:
             output_2d_loss = 0
         if target_vector is not None:
@@ -69,4 +78,8 @@ def val_epoch(model, data_loader_val, device, epoch,
                 log_writer.add_images('Output_2d_%s'%"val", output_2d_image, epoch_1000x)
     metric_logger.synchronize_between_processes()
     print("Averaged stats:", metric_logger)
+    
+    # Add to help with OOM errors
+    torch.cuda.empty_cache()
+
     return {k: meter.global_avg for k, meter in metric_logger.meters.items()}

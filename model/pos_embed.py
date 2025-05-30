@@ -186,9 +186,14 @@ def interpolate_pos_embed_inputsize(model, checkpoint_model,input_size=(16,4000)
         pos_embed_checkpoint = checkpoint_model['pos_embed']
         embedding_size = pos_embed_checkpoint.shape[-1]
         num_patches = model.patch_embed.num_patches
-        num_extra_tokens = model.pos_embed.shape[-2] - num_patches
+        num_extra_tokens = num_extra_tokens = model.pos_embed.shape[-2] - num_patches  # e.g., 3 (CLS + count + seq)
+
+        print(f"DEBUG → num_extra_tokens: {num_extra_tokens} (expected 3)")
+
         # height (== width) for the checkpoint position embedding
-        orig_size = int((pos_embed_checkpoint.shape[-2] - num_extra_tokens) ** 0.5)
+        pos_tokens = pos_embed_checkpoint[:, num_extra_tokens:]
+        orig_patch_count = pos_tokens.shape[1]
+        orig_size = int(orig_patch_count ** 0.5)
         # height (== width) for the new position embedding
         
         # class_token and dist_token are kept unchanged
@@ -196,7 +201,7 @@ def interpolate_pos_embed_inputsize(model, checkpoint_model,input_size=(16,4000)
             print("Position interpolate from %dx%d to %dx%d" % (orig_size, orig_size, input_size[0], input_size[1]))
             extra_tokens = pos_embed_checkpoint[:, :num_extra_tokens]
             # only the position tokens are interpolated
-            pos_tokens = pos_embed_checkpoint[:, num_extra_tokens:]
+            # pos_tokens = pos_embed_checkpoint[:, num_extra_tokens:] ----> moved above to use in orig_size calculation
             pos_tokens = pos_tokens.reshape(-1, orig_size, orig_size, embedding_size).permute(0, 3, 1, 2)
             pos_tokens = torch.nn.functional.interpolate(
                 pos_tokens, size=(input_size[0],input_size[1]), mode='bicubic', align_corners=False)
@@ -220,4 +225,30 @@ def interpolate_pos_embed_inputsize(model, checkpoint_model,input_size=(16,4000)
             new_pos_embed = torch.cat((extra_tokens, pos_tokens), dim=1)
             checkpoint_model['decoder_pos_embed'] = new_pos_embed
 
-    
+def expand_pos_embed_add_count_and_seq(pos_embed, embed_dim, device=None):
+    """
+    Expand pos_embed by adding count and sequence tokens after cls.
+
+    Args:
+        pos_embed (torch.Tensor): shape (1, old_len, embed_dim)
+        embed_dim (int): embedding dimension
+        device (torch.device, optional): target device
+
+    Returns:
+        torch.Tensor: expanded pos_embed with +2 tokens
+    """
+    B, old_len, D = pos_embed.shape
+
+    cls = pos_embed[:, :1, :]         # (1, 1, D)
+    patches = pos_embed[:, 1:, :]     # (1, N, D)
+
+    # Create new tokens
+    new_count_token = torch.randn(1, 1, D, device=device or pos_embed.device) * 0.02
+    new_seq_token = torch.randn(1, 1, D, device=device or pos_embed.device) * 0.02
+
+    # Combine: CLS + COUNT + SEQ + PATCHES
+    expanded = torch.cat([cls, new_count_token, new_seq_token, patches], dim=1)
+
+    print(f"Expanded pos_embed from {old_len} → {expanded.shape[1]} (CLS + COUNT + SEQ + patches)")
+
+    return expanded

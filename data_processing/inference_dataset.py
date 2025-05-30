@@ -193,4 +193,11 @@ class Inference_Dataset(torch.utils.data.Dataset):
         input = self.convert_rgb(input,max_value)
         if self.transform is not None:
             input = self.transform(input)
-        return input,self.total_count,[chrom,row_record_start,col_record_start]
+
+        # === NEW: Load sequence data if available ===
+        sequence_data = None
+        if 'sequence_data' in self.data[chrom].__dict__:
+            sequence_data = np.nan_to_num(self.data[chrom].__dict__['sequence_data']).astype(np.float32)
+            sequence_data = torch.from_numpy(sequence_data)
+            
+        return input, self.total_count, [chrom, row_record_start, col_record_start], sequence_data

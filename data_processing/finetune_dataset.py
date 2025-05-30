@@ -116,10 +116,15 @@ class Finetune_Dataset(torch.utils.data.Dataset):
         return len(self.train_list)
     
     def convert_rgb(self,data_log,max_value):
+        print(f"DEBUG: max_value = {max_value}")
         if len(data_log.shape)==2:
             data_log = data_log[np.newaxis,:]
         data_red = np.ones(data_log.shape)
-        data_log1 = (max_value-data_log)/max_value
+        # data_log1 = (max_value-data_log)/max_value
+        if max_value > 0:
+            data_log1 = (max_value - data_log) / max_value
+        else:
+            data_log1 = data_log  # or skip normalization
         data_rgb = np.concatenate([data_red,data_log1,data_log1],axis=0,dtype=np.float32)#transform only accept channel last case
         data_rgb = data_rgb.transpose(1,2,0)
         return data_rgb
@@ -135,6 +140,7 @@ class Finetune_Dataset(torch.utils.data.Dataset):
         input_matrix = np.nan_to_num(input_matrix)
         input_matrix = input_matrix.astype(np.float32)
         input_matrix = np.log10(input_matrix+1)
+        print(f"DEBUG: input_matrix min={np.min(input_matrix)}, max={np.max(input_matrix)}")
         max_value = np.max(input_matrix)
         input_matrix = self.convert_rgb(input_matrix,max_value)
         if self.transform:
@@ -168,11 +174,17 @@ class Finetune_Dataset(torch.utils.data.Dataset):
             target_vector = target_vector.astype(np.float32)
         else:
             target_vector = None
-
-        return list_to_tensor([input_matrix, total_count, target_matrix, embed_target, target_vector])
         
+        # ✅ NEW: Sequence data (required)
+        if "sequence_data" in data:
+            sequence_data = data['sequence_data']  # shape (seq_length, 4)
+            sequence_data = np.nan_to_num(sequence_data)
+            sequence_data = sequence_data.astype(np.float32)
+            sequence_data = np.transpose(sequence_data, (1, 0))  # (4, seq_length) for Conv1D
+        else:
+            raise ValueError(f"No sequence_data found in {train_file}")
 
-
-
-
-        
+        # Return all including the new sequence_data
+        return list_to_tensor([
+            input_matrix, total_count, target_matrix, embed_target, target_vector, sequence_data
+        ])

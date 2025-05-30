@@ -72,7 +72,7 @@ def argparser_finetune():
     parser.add_argument("--finetune",default=0,type=int,help="1: only fine-tune the model's encoder; 2: fine-tune the whole model;")
     parser.add_argument('--seed', default=888, type=int,help="random seed for fine-tuning. It is used to make sure results are reproducible.")
     #configure loss type
-    parser.add_argument("--loss_type",default=0,type=int,help="1: MSE loss; 2: Cosine loss; \n You can define your own loss function in finetune/loss.py")
+    parser.add_argument("--loss_type",default=0,type=int,help="1: MSE loss; 2: Cosine loss; 3: MSE+SSIM \n You can define your own loss function in finetune/loss.py")
 
     # Dataset parameters
     parser.add_argument('--data_path', type=str, help='a directory contains many sub-directory, each sub-dir includes many .pkl files for fine-tuning. \n \
@@ -107,7 +107,7 @@ def argparser_finetune():
     #configure input size
     parser.add_argument('--input_row_size', default=224, type=int,
                         help='input submatrix row size')
-    parser.add_argument("--input_col_size",default=4000,type=int,help="input submatrix column size")
+    parser.add_argument("--input_col_size",default=224,type=int,help="input submatrix column size")
     parser.add_argument("--patch_size",default=16,type=int,help="patch size for the input submatrix")
     
     #configure print/save frequency
@@ -116,6 +116,8 @@ def argparser_finetune():
     parser.add_argument("--save_freq",default=1,type=int,
                         help="save frequency for saving the fine-tuned model")
     parser.add_argument("--gpu",default="0",type=str,help="which gpu to use, will be configured by the script automatically")
+
+    parser.add_argument('--patience', type=int, default=0, help='Number of epochs to wait before early stopping (0 to disable)')
 
 
     return parser

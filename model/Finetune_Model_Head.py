@@ -86,7 +86,7 @@ class Finetune_Model_Head(nn.Module):
         elif self.task==7:
             #for pre-train reconstruction visualization only
             self.decoder_pred = nn.Linear(decoder_embed_dim, patch_size**2 * 3, bias=True)
-        self.num_additional_token = 2 # 1 cls token and 1 count token
+        self.num_additional_token = 3  # cls + count + sequence
         self.initialize_weights()
     @torch.jit.ignore
     def no_weight_decay(self) -> Set:
@@ -164,14 +164,14 @@ class Finetune_Model_Head(nn.Module):
         imgs = x.reshape(shape=(x.shape[0], in_chans, h * p, w * p))
         return imgs
     #@torch.no_grad()
-    def forward_backbone(self,img,total_count):
-        img=self.vit_backbone.forward_features(img,total_count)
+    def forward_backbone(self,img,total_count, sequence_data=None):
+        img=self.vit_backbone.forward_features(img,total_count, sequence_data)
         return img
-    def forward_decoder(self,img,total_count=None):
+    def forward_decoder(self,img,total_count=None, sequence_data=None):
         if total_count is None:
             total_count = torch.ones(img.shape[0]).to(img.device)
             total_count = total_count*1000000000
-        x = self.forward_backbone(img,total_count)
+        x = self.forward_backbone(img,total_count, sequence_data)
         if self.task==6:
             embedding_list = []
             embedding_list.append(x)
@@ -204,12 +204,13 @@ class Finetune_Model_Head(nn.Module):
      
 
     
-    def forward(self, img,total_count=None):
+    def forward(self, img,total_count=None, sequence_data=None):
         """input hic image"""
         if self.task==0:
             #for fine-tuning
             decoder_output = self.forward_decoder(img,
-                                                total_count=total_count)
+                                                total_count=total_count,
+                                                sequence_data=sequence_data)
             submatrix_embedding = decoder_output[:,0,:]
             pred_2d = self.decoder_map(decoder_output)
             pred_2d = pred_2d[:,self.num_additional_token:,:]

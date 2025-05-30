@@ -57,55 +57,48 @@ def process_mcool_data_and_save_pickle(
     if verbose:
         print(f"--- Processing Region: {region_identifier} from {os.path.basename(cool_file_path)} ---")
 
-    try:
-        # Construct the cooler path for the specific resolution
-        cool_path_with_res = f'{cool_file_path}::/resolutions/{hic_resolution}'
-        c = cooler.Cooler(cool_path_with_res)
-        
-        # Fetch the Hi-C submatrix for the specified genomic region
-        region_matrix = c.matrix(balance=True, sparse=False).fetch(f'{chrom_name}:{hic_start_bp}-{hic_end_bp}')
-        if verbose:
-            print(f"  Fetched Hi-C matrix with shape: {region_matrix.shape}")
+    # Fetch low-res input matrix
+    region_matrix = fetch_hic_matrix(
+        cool_file_path=cool_file_path,
+        chrom_name=chrom_name,
+        start_bp=hic_start_bp,
+        end_bp=hic_end_bp,
+        resolution=hic_resolution,
+        target_window_size=input_window_size,
+        apply_log_transform=apply_log_transform,
+        clamp_max=100,  # per paper for LC
+        verbose=verbose
+    )
 
-        # Handle NaNs (Not a Number) which are common in sparse Hi-C data, converting them to 0.0
-        region_matrix = np.nan_to_num(region_matrix, nan=0.0)
+    if region_matrix is None:
+        return False  # Skip this region
 
-        # Apply log transform if specified
-        if apply_log_transform:
-            region_matrix = np.log10(region_matrix + 1)
-        
-        region_matrix = region_matrix.astype(np.float32)
+    # Fetch high-res target matrix
+    high_res = 4000  # or 2000, depending on your data
+    region_matrix_highres = fetch_hic_matrix(
+        cool_file_path=cool_file_path,
+        chrom_name=chrom_name,
+        start_bp=hic_start_bp,
+        end_bp=hic_end_bp,
+        resolution=high_res,
+        target_window_size=input_window_size,
+        apply_log_transform=apply_log_transform,
+        clamp_max=1000,  # per paper for HC
+        verbose=verbose
+    )
 
-        # IMPORTANT: Ensure the Hi-C matrix matches the expected input_window_size
-        # The fetched matrix will have dimensions (hic_end_bp - hic_start_bp) / hic_resolution
-        expected_bins_from_region = (hic_end_bp - hic_start_bp) // hic_resolution
-        if region_matrix.shape[0] != input_window_size or region_matrix.shape[1] != input_window_size:
-            if verbose:
-                print(f"  WARNING: Extracted Hi-C matrix shape {region_matrix.shape} (expected {expected_bins_from_region}x{expected_bins_from_region} bins from region definition) "
-                      f"does NOT match desired model input {input_window_size}x{input_window_size}.")
-                print(f"  Attempting to resize/crop. You might need to adjust hic_start_bp/hic_end_bp or resolution.")
-            temp_matrix = np.zeros((input_window_size, input_window_size), dtype=np.float32)
-            h, w = region_matrix.shape
-            temp_matrix[:min(h, input_window_size), :min(w, input_window_size)] = \
-                region_matrix[:min(h, input_window_size), :min(w, input_window_size)]
-            region_matrix = temp_matrix
-            if verbose:
-                print(f"  Hi-C matrix resized to: {region_matrix.shape}")
-        elif verbose:
-            print(f"  Hi-C matrix shape {region_matrix.shape} matches desired {input_window_size}x{input_window_size}.")
+    if region_matrix_highres is None:
+        return False  # Skip this region
 
-
-    except Exception as e:
-        print(f"  ERROR for {region_identifier} from {os.path.basename(cool_file_path)}: Failed to load Hi-C data. Skipping this region.")
-        print(f"  Error details: {e}")
-        return False # Indicate failure
+    # Assign as target
+    target_matrix = region_matrix_highres
 
     # 2. Load Sequence Data (aligned by centering)
     try:
         # Calculate the center of the Hi-C region
         hic_center_bp = hic_start_bp + ((hic_end_bp - hic_start_bp) / 2)
 
-        # Calculate Enformer sequence window (centered around Hi-C region)
+        # Calculate sequence window (centered around Hi-C region)
         sequence_start_bp = int(hic_center_bp - (sequence_length / 2))
         sequence_end_bp = int(hic_center_bp + (sequence_length / 2))
 
@@ -124,12 +117,6 @@ def process_mcool_data_and_save_pickle(
         print(f"  Error details: {e}")
         return False # Indicate failure
 
-    # 3. Define Targets
-    # For resolution enhancement (task 3), your '2d_target' would typically be
-    # the higher-resolution ground truth Hi-C matrix corresponding to the input.
-    # We will assume 'target_matrix' is same as 'region_matrix' for now.
-    target_matrix = region_matrix 
-
     total_count = None # Assuming you don't calculate this explicitly for now.
     embed_target = None # Not used for resolution enhancement task.
     target_vector = None # Not used for resolution enhancement task.
@@ -137,7 +124,7 @@ def process_mcool_data_and_save_pickle(
     # Construct the dictionary dynamically, only including non-None values for optional keys.
     data_to_save = {
         'input': region_matrix,
-        'sequence_data': one_hot_seq, # Sequence data is now mandatory for your task
+        'sequence_data': one_hot_seq, # Sequence data is now mandatory for your task ---> want to make this nonmandatory
     }
 
     if total_count is not None:
@@ -163,6 +150,58 @@ def process_mcool_data_and_save_pickle(
     if verbose:
         print("-" * 70)
     return True # Indicate success
+
+def fetch_hic_matrix(cool_file_path, chrom_name, start_bp, end_bp, resolution, 
+                     target_window_size, apply_log_transform=True, clamp_max=None, verbose=False):
+    """
+    Fetches and preprocesses a Hi-C matrix from a .mcool file.
+
+    Args:
+        cool_file_path (str): Path to .mcool file.
+        chrom_name (str): Chromosome name (e.g., 'chr1').
+        start_bp (int): Start basepair.
+        end_bp (int): End basepair.
+        resolution (int): Resolution to fetch (e.g., 8000 for 8 kb).
+        target_window_size (int): Final matrix size (e.g., 224).
+        apply_log_transform (bool): Whether to apply log10(x + 1).
+        clamp_max (float or None): Maximum value to clamp to (if needed).
+        verbose (bool): Whether to print debug info.
+
+    Returns:
+        np.ndarray: Processed Hi-C matrix (target_window_size, target_window_size).
+    """
+    try:
+        cool_path_with_res = f'{cool_file_path}::/resolutions/{resolution}'
+        c = cooler.Cooler(cool_path_with_res)
+
+        region_matrix = c.matrix(balance=True, sparse=False).fetch(f'{chrom_name}:{start_bp}-{end_bp}')
+        region_matrix = np.nan_to_num(region_matrix, nan=0.0)
+
+        if apply_log_transform:
+            region_matrix = np.log10(region_matrix + 1)
+
+        if clamp_max is not None:
+            region_matrix = np.clip(region_matrix, 0, clamp_max)
+
+        # Normalize to [0,1]
+        region_matrix = (region_matrix - region_matrix.min()) / (region_matrix.max() - region_matrix.min() + 1e-8)
+        region_matrix = region_matrix.astype(np.float32)
+
+        # Resize/crop if needed
+        if region_matrix.shape[0] != target_window_size or region_matrix.shape[1] != target_window_size:
+            temp_matrix = np.zeros((target_window_size, target_window_size), dtype=np.float32)
+            h, w = region_matrix.shape
+            temp_matrix[:min(h, target_window_size), :min(w, target_window_size)] = \
+                region_matrix[:min(h, target_window_size), :min(w, target_window_size)]
+            region_matrix = temp_matrix
+            if verbose:
+                print(f"  Hi-C matrix at {resolution} bp resized to: {region_matrix.shape}")
+
+        return region_matrix
+
+    except Exception as e:
+        print(f"  ERROR fetching Hi-C matrix at {resolution} bp: {e}")
+        return None  # Indicate failure
 
 # --- Main script execution for multiple genomic regions ---
 if __name__ == "__main__":

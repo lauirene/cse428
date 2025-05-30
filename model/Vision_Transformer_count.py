@@ -9,7 +9,7 @@ import torch.nn as nn
 import timm.models.vision_transformer
 
 from model.pos_embed import convert_count_to_pos_embed_cuda
-
+from model.SmallSequenceCNN import SmallSequenceCNN
 
 class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
     """ Vision Transformer with support for global average pooling
@@ -20,22 +20,53 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
         self.in_chans = kwargs['in_chans']
         self.embed_dim = kwargs['embed_dim']
 
-    def forward_features(self, x,total_count):
+        # Override positional embedding to add +1 for sequence token
+        self.pos_embed = nn.Parameter(
+            torch.zeros(1, self.patch_embed.num_patches + 1 + 1 + 1, self.embed_dim)
+        )
+
+
+        # Add the sequence encoder
+        self.sequence_encoder = SmallSequenceCNN(input_channels=4, embed_dim=self.embed_dim)
+
+    def forward_features(self, x,total_count, sequence_input):
         B = x.shape[0]
+
+        # Patch embedding (image input)
         x = self.patch_embed(x)
 
+        ## total count stuff ###
         total_count = torch.log10(total_count)
         count_embed = convert_count_to_pos_embed_cuda(total_count, self.embed_dim)
         count_embed = count_embed.unsqueeze(1)# (N, 1, D)
 
-        cls_tokens = self.cls_token.expand(B, -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
-        #cls tokens is simply a learnable parameter and 0 positional embedding is added
-        x = x + self.pos_embed[:, 1:, :]
-
-        x = torch.cat((cls_tokens,count_embed,  x), dim=1)
+        # Sequence embedding (new addition)
+        sequence_embed = self.sequence_encoder(sequence_input).unsqueeze(1)  # (B, 1, D)
         
+        # === DEBUG LOGGING HOOK ===
+        if not self.training:
+            # Only log during evaluation or always???? not really sure how the hooks work
+            print(f"[DEBUG] sequence_embed mean: {sequence_embed.mean().item():.6f}, std: {sequence_embed.std().item():.6f}")
+
+        if sequence_embed.requires_grad:
+            sequence_embed.register_hook(grad_hook_fn)
+
+        # Class token
+        cls_tokens = self.cls_token.expand(B, -1, -1)  # (B, 1, D)
+
+        # Combine → [CLS] + [SEQ] + [PATCHES]
+        x = torch.cat((cls_tokens, count_embed, sequence_embed, x), dim=1)  # (B, 1+1+num_patches, D)
+
+        # Check that positional embeddings match
+        if self.pos_embed.shape[1] != x.shape[1]:
+            raise ValueError(f"pos_embed shape mismatch: expected {x.shape[1]}, got {self.pos_embed.shape[1]}")
+
+        # Add positional embeddings
+        x = x + self.pos_embed
+
         x = self.pos_drop(x)
 
+        # Transformer blocks
         for blk in self.blocks:
             x = blk(x)
 
@@ -43,7 +74,9 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
         x = self.norm(x)
 
         return x
-
+    
+def grad_hook_fn(grad):
+    print(f"[GRADIENT HOOK] sequence_embed grad mean: {grad.mean().item():.6f}, std: {grad.std().item():.6f}")
 
 def vit_base_patch16(**kwargs):
     model = VisionTransformer(in_chans=3,
