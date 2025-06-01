@@ -44,12 +44,12 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
         sequence_embed = self.sequence_encoder(sequence_input).unsqueeze(1)  # (B, 1, D)
         
         # === DEBUG LOGGING HOOK ===
-        if not self.training:
-            # Only log during evaluation or always???? not really sure how the hooks work
-            print(f"[DEBUG] sequence_embed mean: {sequence_embed.mean().item():.6f}, std: {sequence_embed.std().item():.6f}")
+        # if not self.training:
+        #     # Only log during evaluation or always???? not really sure how the hooks work
+        #     print(f"[DEBUG] sequence_embed mean: {sequence_embed.mean().item():.6f}, std: {sequence_embed.std().item():.6f}")
 
-        if sequence_embed.requires_grad:
-            sequence_embed.register_hook(grad_hook_fn)
+        # if sequence_embed.requires_grad:
+        #     sequence_embed.register_hook(grad_hook_fn)
 
         # Class token
         cls_tokens = self.cls_token.expand(B, -1, -1)  # (B, 1, D)

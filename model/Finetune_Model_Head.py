@@ -211,18 +211,18 @@ class Finetune_Model_Head(nn.Module):
             decoder_output = self.forward_decoder(img,
                                                 total_count=total_count,
                                                 sequence_data=sequence_data)
-            submatrix_embedding = decoder_output[:,0,:]
+            # submatrix_embedding = decoder_output[:,0,:]
             pred_2d = self.decoder_map(decoder_output)
             pred_2d = pred_2d[:,self.num_additional_token:,:]
             pred_2d = self.unpatchify_channel(pred_2d,1)
-            patch_embedding = decoder_output[:,self.num_additional_token:,:]
-            num_patch_row = self.pos_embed_size[0]
-            num_patch_col = self.pos_embed_size[1]
-            pred_1d = patch_embedding.reshape(shape=(patch_embedding.shape[0], num_patch_row,num_patch_col,-1)) #average all columns
-            pred_1d = torch.mean(pred_1d,dim=2) #N, H, C
-            pred_1d = self.map_block(pred_1d) #N, H, D, where D is the output_dim
-            pred_1d = pred_1d.reshape(pred_1d.shape[0],-1) #N, H*D
-            return submatrix_embedding, pred_2d[:,0,:], pred_1d
+            # patch_embedding = decoder_output[:,self.num_additional_token:,:]
+            # num_patch_row = self.pos_embed_size[0]
+            # num_patch_col = self.pos_embed_size[1]
+            # pred_1d = patch_embedding.reshape(shape=(patch_embedding.shape[0], num_patch_row,num_patch_col,-1)) #average all columns
+            # pred_1d = torch.mean(pred_1d,dim=2) #N, H, C
+            # pred_1d = self.map_block(pred_1d) #N, H, D, where D is the output_dim
+            # pred_1d = pred_1d.reshape(pred_1d.shape[0],-1) #N, H*D
+            return None, pred_2d, None #submatrix_embedding, pred_2d[:,0,:], pred_1d
         elif self.task==1:
             #for reproducibility analysis
             decoder_output = self.forward_decoder(img,

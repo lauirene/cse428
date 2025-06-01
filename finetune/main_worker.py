@@ -17,7 +17,7 @@ from ops.io_utils import write_log
 import model.lr_decay as lrd
 from model.NativeScaler import NativeScalerWithGradNormCount as NativeScaler
 from model.model_utils import load_model,save_checkpoint,save_model2path
-from finetune.train_epoch import train_epoch, attention_logs, LOG_EVERY_N
+from finetune.train_epoch import train_epoch #, attention_logs, LOG_EVERY_N
 from finetune.val_epoch import val_epoch
 
 from model.pos_embed import expand_pos_embed_add_count_and_seq
@@ -28,7 +28,7 @@ def attention_hook(module, input, output):
         'mean': output.mean().item(),
         'std': output.std().item()
     }
-    attention_logs.append(batch_stats)
+    # attention_logs.append(batch_stats)
 
 def parse_text(config_file, data_dir):
     train_list=[]
@@ -206,8 +206,8 @@ def main_worker(gpu, ngpus_per_node,args):
                 p.requires_grad = False
 
         print_important_info("Only fine-tune the model's decoder")
-    for i, blk in enumerate(model.vit_backbone.blocks):
-        blk.attn.register_forward_hook(attention_hook)
+    # for i, blk in enumerate(model.vit_backbone.blocks):
+    #     blk.attn.register_forward_hook(attention_hook)
 
     if args.distributed:
         #not necessary for current setting, since all param with grad

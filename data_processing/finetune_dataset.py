@@ -116,7 +116,6 @@ class Finetune_Dataset(torch.utils.data.Dataset):
         return len(self.train_list)
     
     def convert_rgb(self,data_log,max_value):
-        print(f"DEBUG: max_value = {max_value}")
         if len(data_log.shape)==2:
             data_log = data_log[np.newaxis,:]
         data_red = np.ones(data_log.shape)
@@ -140,7 +139,7 @@ class Finetune_Dataset(torch.utils.data.Dataset):
         input_matrix = np.nan_to_num(input_matrix)
         input_matrix = input_matrix.astype(np.float32)
         input_matrix = np.log10(input_matrix+1)
-        print(f"DEBUG: input_matrix min={np.min(input_matrix)}, max={np.max(input_matrix)}")
+        # print(f"DEBUG: input_matrix min={np.min(input_matrix)}, max={np.max(input_matrix)}")
         max_value = np.max(input_matrix)
         input_matrix = self.convert_rgb(input_matrix,max_value)
         if self.transform:
