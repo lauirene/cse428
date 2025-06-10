@@ -125,7 +125,10 @@ def main_worker(gpu, ngpus_per_node,args):
     data_loader_train, data_loader_val = configure_data_loader(args)
     print("Data loader is configured!")
 
-    import model.Vision_Transformer_count as Vision_Transformer
+    if args.sequence == 1:
+        import model.Vision_Transformer_seq as Vision_Transformer
+    else:
+        import model.Vision_Transformer_count as Vision_Transformer
     #should be a dyanmic input model
     patch_wise_size = (args.input_row_size//args.patch_size,args.input_col_size//args.patch_size)
     vit_backbone = Vision_Transformer.__dict__[args.model](img_size=(args.input_row_size,args.input_col_size))
@@ -142,13 +145,14 @@ def main_worker(gpu, ngpus_per_node,args):
         num_patches = (args.input_row_size // args.patch_size) * (args.input_col_size // args.patch_size)
         embed_dim = vit_backbone.embed_dim  # from VisionTransformer instance
 
-        # Apply fix if needed
-        if 'pos_embed' in checkpoint_model:
-            checkpoint_model['pos_embed'] = expand_pos_embed_add_count_and_seq(
-                checkpoint_model['pos_embed'],
-                embed_dim=vit_backbone.embed_dim,
-                device='cpu'
-            )
+        if args.sequence == 1:
+            # Apply fix if needed
+            if 'pos_embed' in checkpoint_model:
+                checkpoint_model['pos_embed'] = expand_pos_embed_add_count_and_seq(
+                    checkpoint_model['pos_embed'],
+                    embed_dim=vit_backbone.embed_dim,
+                    device='cpu'
+                )
         state_dict = vit_backbone.state_dict()
         for k in ['head.weight', 'head.bias']:
             if k in checkpoint_model and checkpoint_model[k].shape != state_dict[k].shape:
@@ -171,7 +175,7 @@ def main_worker(gpu, ngpus_per_node,args):
     from model.Finetune_Model_Head import Finetune_Model_Head
     model = Finetune_Model_Head(vit_backbone, task=0,
                             decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
-                        mlp_ratio=4., norm_layer=nn.LayerNorm,pos_embed_size=patch_wise_size)
+                        mlp_ratio=4., norm_layer=nn.LayerNorm,pos_embed_size=patch_wise_size, use_sequence=(args.sequence==1))
     if os.path.exists(pretrain_path) and os.path.isfile(pretrain_path) and os.path.getsize(pretrain_path) > 1000:
         print("Loading pre-trained model from {} for decoder".format(pretrain_path))
         checkpoint = torch.load(pretrain_path, map_location='cpu')
@@ -182,13 +186,14 @@ def main_worker(gpu, ngpus_per_node,args):
         num_patches = (args.input_row_size // args.patch_size) * (args.input_col_size // args.patch_size)
         embed_dim = vit_backbone.embed_dim  # from your VisionTransformer instance
 
-        # Apply fix if needed
-        if 'pos_embed' in checkpoint_model:
-            checkpoint_model['pos_embed'] = expand_pos_embed_add_count_and_seq(
-                checkpoint_model['pos_embed'],
-                embed_dim=vit_backbone.embed_dim,
-                device='cpu'
-            )
+        if args.sequence == 1:
+            # Apply fix if needed
+            if 'pos_embed' in checkpoint_model:
+                checkpoint_model['pos_embed'] = expand_pos_embed_add_count_and_seq(
+                    checkpoint_model['pos_embed'],
+                    embed_dim=vit_backbone.embed_dim,
+                    device='cpu'
+                )
         interpolate_pos_embed_inputsize(model, checkpoint['model'],
                                         input_size=patch_wise_size,use_decoder=True)
         msg = model.load_state_dict(checkpoint_model, strict=False)

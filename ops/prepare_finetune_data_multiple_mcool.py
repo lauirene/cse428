@@ -207,13 +207,13 @@ def fetch_hic_matrix(cool_file_path, chrom_name, start_bp, end_bp, resolution,
 if __name__ == "__main__":
     # --- Configuration ---
     # IMPORTANT: Customize these paths to your actual files and desired output location
-    YOUR_MCOOL_FILE_PATH = "/storage/ixjl/cse428/orca_data/resources/4DNFI9GMP2J8.rebinned.mcool" # The single .mcool file you want to process
+    YOUR_MCOOL_FILE_PATH = "/storage/ixjl/cse428/orca_data/resources/4DNFI643OYP9.rebinned.mcool" #"/storage/ixjl/cse428/orca_data/resources/4DNFI643OYP9.rebinned.mcool" #"/storage/ixjl/cse428/orca_data/resources/4DNFILP99QJS.HCT_auxin6h.rebinned.mcool" #"/storage/ixjl/cse428/orca_data/resources/4DNFI9GMP2J8.rebinned.mcool" # The single .mcool file you want to process
     YOUR_FASTA_FILE = "/storage/ixjl/cse428/ref_genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa" # Your genomic FASTA file
     OUTPUT_BASE_DIR = "./processed_finetune_data_multiple_regions" # Output directory for .pkl files
 
     # --- Model Input Parameters (as per HiCFoundation paper for resolution enhancement) ---
     MODEL_INPUT_HIC_WINDOW_SIZE = 224 # Hi-C matrix will be 224x224 bins
-    HIC_DATA_RESOLUTION_BP = 8000 # Hi-C data is at 8 kb resolution (changed from 10kb as per your mcool file)
+    HIC_DATA_RESOLUTION_BP = 16000 # Hi-C data is at 8 kb resolution (changed from 10kb as per your mcool file)
     
     # --- Sequence Parameters ---
     # Enformer's typical input sequence length (adjust if your Enformer model expects a different length)

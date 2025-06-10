@@ -23,7 +23,7 @@ class Finetune_Model_Head(nn.Module):
     """
     def __init__(self, vit_backbone,task=1,
                  decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
-                 mlp_ratio=4., norm_layer=nn.LayerNorm,pos_embed_size=(1,250)):
+                 mlp_ratio=4., norm_layer=nn.LayerNorm,pos_embed_size=(1,250), use_sequence=True):
         """
         task 0: fine-tuning setting
         task 1: reproducibility analysis
@@ -38,6 +38,7 @@ class Finetune_Model_Head(nn.Module):
         super().__init__()
         # --------------------------------------------------------------------------
         # HiCFoundation encoder 
+        self.use_sequence = use_sequence
         self.vit_backbone = vit_backbone
         self.embed_dim = vit_backbone.embed_dim
         self.task = task
@@ -86,7 +87,7 @@ class Finetune_Model_Head(nn.Module):
         elif self.task==7:
             #for pre-train reconstruction visualization only
             self.decoder_pred = nn.Linear(decoder_embed_dim, patch_size**2 * 3, bias=True)
-        self.num_additional_token = 3  # cls + count + sequence
+        self.num_additional_token = 3 if self.use_sequence else 2  # cls + count + sequence
         self.initialize_weights()
     @torch.jit.ignore
     def no_weight_decay(self) -> Set:
@@ -208,9 +209,13 @@ class Finetune_Model_Head(nn.Module):
         """input hic image"""
         if self.task==0:
             #for fine-tuning
-            decoder_output = self.forward_decoder(img,
+            if self.use_sequence:
+                decoder_output = self.forward_decoder(img,
                                                 total_count=total_count,
                                                 sequence_data=sequence_data)
+            else:
+                decoder_output = self.forward_decoder(img,
+                                                total_count=total_count)
             # submatrix_embedding = decoder_output[:,0,:]
             pred_2d = self.decoder_map(decoder_output)
             pred_2d = pred_2d[:,self.num_additional_token:,:]
@@ -231,7 +236,8 @@ class Finetune_Model_Head(nn.Module):
         elif self.task==2 or self.task==3 or self.task==5:
             #for loop calling, resolution enhancement and scHi-C enhancement
             decoder_output = self.forward_decoder(img,
-                                                total_count=total_count)
+                                                total_count=total_count,
+                                                sequence_data=sequence_data)
             decoder_output = self.decoder_map(decoder_output)
             # use patch-wise token
             decoder_output= decoder_output[:,self.num_additional_token:,:]

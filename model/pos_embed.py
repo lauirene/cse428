@@ -186,22 +186,25 @@ def interpolate_pos_embed_inputsize(model, checkpoint_model,input_size=(16,4000)
         pos_embed_checkpoint = checkpoint_model['pos_embed']
         embedding_size = pos_embed_checkpoint.shape[-1]
         num_patches = model.patch_embed.num_patches
-        num_extra_tokens = num_extra_tokens = model.pos_embed.shape[-2] - num_patches  # e.g., 3 (CLS + count + seq)
+        num_extra_tokens = model.pos_embed.shape[-2] - num_patches  # e.g., 3 (CLS + count + seq)
 
         print(f"DEBUG → num_extra_tokens: {num_extra_tokens} (expected 3)")
 
-        # height (== width) for the checkpoint position embedding
-        pos_tokens = pos_embed_checkpoint[:, num_extra_tokens:]
-        orig_patch_count = pos_tokens.shape[1]
-        orig_size = int(orig_patch_count ** 0.5)
-        # height (== width) for the new position embedding
-        
+        if model.use_sequence:
+            # height (== width) for the checkpoint position embedding
+            pos_tokens = pos_embed_checkpoint[:, num_extra_tokens:]
+            orig_patch_count = pos_tokens.shape[1]
+            orig_size = int(orig_patch_count ** 0.5)
+            # height (== width) for the new position embedding
+        else:
+            orig_size = int((pos_embed_checkpoint.shape[-2] - num_extra_tokens) ** 0.5)
+
         # class_token and dist_token are kept unchanged
         if orig_size != input_size[0] or orig_size!=input_size[1]:
             print("Position interpolate from %dx%d to %dx%d" % (orig_size, orig_size, input_size[0], input_size[1]))
             extra_tokens = pos_embed_checkpoint[:, :num_extra_tokens]
             # only the position tokens are interpolated
-            # pos_tokens = pos_embed_checkpoint[:, num_extra_tokens:] ----> moved above to use in orig_size calculation
+            if not model.use_sequence: pos_tokens = pos_embed_checkpoint[:, num_extra_tokens:] #----> moved above to use in orig_size calculation
             pos_tokens = pos_tokens.reshape(-1, orig_size, orig_size, embedding_size).permute(0, 3, 1, 2)
             pos_tokens = torch.nn.functional.interpolate(
                 pos_tokens, size=(input_size[0],input_size[1]), mode='bicubic', align_corners=False)

@@ -8,6 +8,8 @@ def collate_fn(batch):
     for tensors in batch_transposed:
         if all(t is None for t in tensors):  # If all are None, keep None
             processed_batch.append(None)
+        elif isinstance(tensors[0], str):  # 👈 Handle filename case
+            processed_batch.append(list(tensors))
         else:  # Otherwise, stack non-None tensors and replace None with zero tensors
             #make sure no None element in the tensors
             any_none = any(t is None for t in tensors)

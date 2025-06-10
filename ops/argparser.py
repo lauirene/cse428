@@ -118,6 +118,7 @@ def argparser_finetune():
     parser.add_argument("--gpu",default="0",type=str,help="which gpu to use, will be configured by the script automatically")
 
     parser.add_argument('--patience', type=int, default=0, help='Number of epochs to wait before early stopping (0 to disable)')
+    parser.add_argument('--sequence', type=int, default=1, help='Set sequence to 0 to finetune without sequence information')
 
 
     return parser
