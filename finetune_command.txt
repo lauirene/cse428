@@ -10,6 +10,6 @@ python finetune.py \
   --valid_config /storage/ixjl/cse428/processed_finetune_data_multiple_regions/val.txt \
   --output ./output_lowRes_4DNFI643OYP9 \
   --loss_type=3 \
-  --save_freq 5 \
+  --save_freq 8 \
   --tensorboard 1 \
   --sequence 1

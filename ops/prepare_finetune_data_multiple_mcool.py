@@ -93,7 +93,7 @@ def process_mcool_data_and_save_pickle(
     # Assign as target
     target_matrix = region_matrix_highres
 
-    # 2. Load Sequence Data (aligned by centering)
+    # Load Sequence Data (aligned by centering)
     try:
         # Calculate the center of the Hi-C region
         hic_center_bp = hic_start_bp + ((hic_end_bp - hic_start_bp) / 2)
@@ -117,9 +117,10 @@ def process_mcool_data_and_save_pickle(
         print(f"  Error details: {e}")
         return False # Indicate failure
 
-    total_count = None # Assuming you don't calculate this explicitly for now.
-    embed_target = None # Not used for resolution enhancement task.
-    target_vector = None # Not used for resolution enhancement task.
+    # Not used for resolution enhancement
+    total_count = None
+    embed_target = None
+    target_vector = None
 
     # Construct the dictionary dynamically, only including non-None values for optional keys.
     data_to_save = {
@@ -129,7 +130,7 @@ def process_mcool_data_and_save_pickle(
 
     if total_count is not None:
         data_to_save['input_count'] = total_count
-    if target_matrix is not None: # For resolution enhancement, this is likely always present
+    if target_matrix is not None: # should be true!!!!!!!!!!!!!!!!
         data_to_save['2d_target'] = target_matrix
     if embed_target is not None:
         data_to_save['embed_target'] = embed_target
@@ -207,8 +208,8 @@ def fetch_hic_matrix(cool_file_path, chrom_name, start_bp, end_bp, resolution,
 if __name__ == "__main__":
     # --- Configuration ---
     # IMPORTANT: Customize these paths to your actual files and desired output location
-    YOUR_MCOOL_FILE_PATH = "/storage/ixjl/cse428/orca_data/resources/4DNFI643OYP9.rebinned.mcool" #"/storage/ixjl/cse428/orca_data/resources/4DNFI643OYP9.rebinned.mcool" #"/storage/ixjl/cse428/orca_data/resources/4DNFILP99QJS.HCT_auxin6h.rebinned.mcool" #"/storage/ixjl/cse428/orca_data/resources/4DNFI9GMP2J8.rebinned.mcool" # The single .mcool file you want to process
-    YOUR_FASTA_FILE = "/storage/ixjl/cse428/ref_genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa" # Your genomic FASTA file
+    YOUR_MCOOL_FILE_PATH = "/storage/ixjl/cse428/orca_data/resources/4DNFI643OYP9.rebinned.mcool"
+    YOUR_FASTA_FILE = "/storage/ixjl/cse428/ref_genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
     OUTPUT_BASE_DIR = "./processed_finetune_data_multiple_regions" # Output directory for .pkl files
 
     # --- Model Input Parameters (as per HiCFoundation paper for resolution enhancement) ---
