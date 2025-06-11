@@ -14,11 +14,3 @@ python predict.py \
   --sequence 1 \
   --device cuda
 ```
-
-### Notes:
-✅ Replace `/path/to/your/data_directory` with the root directory containing your `.pkl` files.  
-✅ Replace `/path/to/your/validation_config.txt` with the config file listing which subdirectories or files to process.  
-✅ Replace `/path/to/your/checkpoint.pth.tar` with your trained model checkpoint file.  
-✅ Adjust `--batch_size` and `--num_workers` as needed for your hardware.
-
-Let me know if you want me to bake this command directly into a bash script or README block!
