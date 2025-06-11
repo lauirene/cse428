@@ -1,6 +1,6 @@
 # HiCFoundation with Sequence Data
 
-This repository contains a modified version of the [HiCFoundation model](https://github.com/ma-compbio/HiCFoundation) that incorporates DNA sequence information to enhance Hi-C contact map resolution. The extended architecture integrates a lightweight 1D CNN-based sequence encoder with the original Hi-C encoder. The report is contained in the finalReport.pdf file. Note: This repository contains code from the HiCFoundation model repo which is not used in the final project.
+This repository contains a modified version of the [HiCFoundation model](https://github.com/ma-compbio/HiCFoundation) that incorporates DNA sequence information to enhance Hi-C contact map resolution. The extended architecture integrates a lightweight 1D CNN-based sequence encoder with the original Hi-C encoder. The report is contained in the finalReport.pdf file and the model checkpoints can be found in the following google drive [folder link](https://drive.google.com/drive/folders/1CYCTwA6voRdYyYaCjHhjU5e9atqEcTyC?usp=drive_link). Note: This repository contains code from the HiCFoundation model repo which is not used in the final project.
 
 ---
 
